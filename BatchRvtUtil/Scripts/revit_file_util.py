@@ -24,7 +24,7 @@ import System
 from System import Environment
 from System.IO import Path
 import path_util
-
+from System.Collections.Generic import List
 clr.AddReference("RevitAPI")
 from Autodesk.Revit.DB import *
 
@@ -184,7 +184,7 @@ def IsRvt2021_OrNewer(application):
     try:
         return int(application.VersionNumber) > 2020
     except:
-        return false
+        return True
 
 def OpenCloudDocument(application, cloudProjectId, cloudModelId, closeAllWorksets=False, worksetConfig=None, audit=False):
     if IsRvt2021_OrNewer(application):
@@ -192,8 +192,16 @@ def OpenCloudDocument(application, cloudProjectId, cloudModelId, closeAllWorkset
     else:
         cloudPath = ToCloudPath(cloudProjectId, cloudModelId)
     openOptions = OpenOptions()
+    ######################################
+    # Todo: Lagt til at den stenger alle Worksets med Link i navnet
     worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
+    userworksetinfos = WorksharingUtils.GetUserWorksetInfo(cloudPath)  # type: list[WorksetPreview]
+    for wo in userworksetinfos:
+        if "link" in str(wo.Name).lower():
+            worksetConfig.Close(List[WorksetId](wo.Id))
     openOptions.SetOpenWorksetsConfiguration(worksetConfig)
+    ######################################
+
     if audit:
         openOptions.Audit = True
     return application.OpenDocumentFile(cloudPath, openOptions)
@@ -204,7 +212,13 @@ def OpenAndActivateCloudDocument(uiApplication, cloudProjectId, cloudModelId, cl
     else:
         cloudPath = ToCloudPath(cloudProjectId, cloudModelId)
     openOptions = OpenOptions()
+    # Todo: Lagt til at den stenger alle Worksets med Link i navnet
     worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
+    userworksetinfos = WorksharingUtils.GetUserWorksetInfo(cloudPath)  # type: list[WorksetPreview]
+
+    for wo in userworksetinfos:
+        if "link" in str(wo.Name).lower():
+            worksetConfig.Close(List[WorksetId](wo.Id))
     openOptions.SetOpenWorksetsConfiguration(worksetConfig)
     if audit:
         openOptions.Audit = True
