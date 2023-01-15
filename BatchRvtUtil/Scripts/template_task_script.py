@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 import clr
 import System
 clr.AddReference("System.Core")

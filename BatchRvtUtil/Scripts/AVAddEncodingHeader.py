@@ -14,8 +14,8 @@ def add_encoding_header(filepath):
 
     with open(filepath, "w") as fi:
         fi.writelines(lines)
-        
+
 
 
 for x in files:
-    print x
+    add_encoding_header(x)
