@@ -12,5 +12,10 @@ def add_encoding_header(filepath):
     if not lines[0].startswith("# -*- coding: utf-8 -*-"):
         lines.insert(0, "# -*- coding: utf-8 -*-\r")
 
+    with open(filepath, "w") as fi:
+        fi.writelines(lines)
+        
+
+
 for x in files:
     print x
