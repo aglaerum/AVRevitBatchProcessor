@@ -1,4 +1,4 @@
-#
+# -*- coding: utf-8 -*-
 # Revit Batch Processor
 #
 # Copyright (c) 2020  Dan Rumery, BVN
@@ -17,6 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
+# Add utf-8 header to this file to support non-ASCII characters in this file.
+
+import sys
 
 import clr
 import System
@@ -542,6 +545,12 @@ def Main():
     
     Output()
     return
+
+# Todo: Legg til variabler for kjøring i pycharm
+
+for x in sys.argv:
+    Output("SYS.ARGV:")
+    Output(str(x))
 
 try:
     Main()

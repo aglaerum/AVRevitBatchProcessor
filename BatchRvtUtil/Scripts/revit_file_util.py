@@ -196,9 +196,11 @@ def OpenCloudDocument(application, cloudProjectId, cloudModelId, closeAllWorkset
     # Todo: Lagt til at den stenger alle Worksets med Link i navnet
     worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
     userworksetinfos = WorksharingUtils.GetUserWorksetInfo(cloudPath)  # type: list[WorksetPreview]
+    closeworksets = []
     for wo in userworksetinfos:
         if "link" in str(wo.Name).lower():
-            worksetConfig.Close(List[WorksetId](wo.Id))
+            closeworksets.append(wo)
+    worksetConfig.Close(List[WorksetId]([x.Id for x in closeworksets]))
     openOptions.SetOpenWorksetsConfiguration(worksetConfig)
     ######################################
 
@@ -212,14 +214,18 @@ def OpenAndActivateCloudDocument(uiApplication, cloudProjectId, cloudModelId, cl
     else:
         cloudPath = ToCloudPath(cloudProjectId, cloudModelId)
     openOptions = OpenOptions()
+    ######################################
     # Todo: Lagt til at den stenger alle Worksets med Link i navnet
     worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
     userworksetinfos = WorksharingUtils.GetUserWorksetInfo(cloudPath)  # type: list[WorksetPreview]
-
+    closeworksets = []
     for wo in userworksetinfos:
         if "link" in str(wo.Name).lower():
-            worksetConfig.Close(List[WorksetId](wo.Id))
+            closeworksets.append(wo)
+    worksetConfig.Close(List[WorksetId]([x.Id for x in closeworksets]))
     openOptions.SetOpenWorksetsConfiguration(worksetConfig)
+    ######################################
+
     if audit:
         openOptions.Audit = True
     return uiApplication.OpenAndActivateDocument(cloudPath, openOptions, False)

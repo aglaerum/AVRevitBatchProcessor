@@ -56,25 +56,6 @@ def exporter(doc, outfolder, psetfile):
         # uidoc.ActiveView = view
         AVIFCExporterLib.export_view(view, outfolder, psetfile)
 
-# def open_worksets(doc):
-#     # type: (DB.Document) -> None
-#     # Open all worksets
-#     worksets = DB.FilteredWorksetCollector(doc).OfKind(DB.WorksetKind.UserWorkset).ToWorksets()  # type: list[DB.Workset]
-#     worksets = [x for x in worksets if "link" not in str(x.Name)]
-#     wstable = doc.GetWorksetTable() # type: DB.WorksetTable
-#
-#     for workset in worksets:  # type: DB.Workset
-#         doc.Open()
-
-# def close_worksets(doc):
-#     # type: (DB.Document) -> None
-#     # Close all worksets
-#     worksets = DB.FilteredWorksetCollector(doc).OfKind(DB.WorksetKind.UserWorkset).ToWorksets()
-#     for workset in worksets:
-#         workset.IsOpen = False
-
-# def unload_all_links():
-#     pass
 
 ######################### Sjekk Grunnleggende ####################
 
