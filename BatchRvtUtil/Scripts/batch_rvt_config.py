@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-#
+# -*- coding: utf-8 -*-
+#
 # Revit Batch Processor
 #
 # Copyright (c) 2020  Dan Rumery, BVN
