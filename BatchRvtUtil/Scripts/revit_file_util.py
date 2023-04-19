@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-#
+# -*- coding: utf-8 -*-
+#
 # Revit Batch Processor
 #
 # Copyright (c) 2020  Dan Rumery, BVN
@@ -186,6 +187,15 @@ def IsRvt2021_OrNewer(application):
     except:
         return True
 
+def CloseWorksets(modelpath, worksetConfig):
+    userworksetinfos = WorksharingUtils.GetUserWorksetInfo(modelpath)  # type: list[WorksetPreview]
+    closeworksets = []
+    for wo in userworksetinfos:
+        if "link" in str(wo.Name).lower() or "*" in str(wo.Name).lower():
+            closeworksets.append(wo)
+    worksetConfig.Close(List[WorksetId]([x.Id for x in closeworksets]))
+    return worksetConfig
+
 def OpenCloudDocument(application, cloudProjectId, cloudModelId, closeAllWorksets=False, worksetConfig=None, audit=False):
     if IsRvt2021_OrNewer(application):
         cloudPath = ToCloudPath2021(cloudProjectId, cloudModelId)
@@ -195,12 +205,7 @@ def OpenCloudDocument(application, cloudProjectId, cloudModelId, closeAllWorkset
     ######################################
     # Todo: Lagt til at den stenger alle Worksets med Link i navnet
     worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
-    userworksetinfos = WorksharingUtils.GetUserWorksetInfo(cloudPath)  # type: list[WorksetPreview]
-    closeworksets = []
-    for wo in userworksetinfos:
-        if "link" in str(wo.Name).lower():
-            closeworksets.append(wo)
-    worksetConfig.Close(List[WorksetId]([x.Id for x in closeworksets]))
+    worksetConfig = CloseWorksets(cloudPath, worksetConfig)
     openOptions.SetOpenWorksetsConfiguration(worksetConfig)
     ######################################
 
@@ -217,12 +222,7 @@ def OpenAndActivateCloudDocument(uiApplication, cloudProjectId, cloudModelId, cl
     ######################################
     # Todo: Lagt til at den stenger alle Worksets med Link i navnet
     worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
-    userworksetinfos = WorksharingUtils.GetUserWorksetInfo(cloudPath)  # type: list[WorksetPreview]
-    closeworksets = []
-    for wo in userworksetinfos:
-        if "link" in str(wo.Name).lower():
-            closeworksets.append(wo)
-    worksetConfig.Close(List[WorksetId]([x.Id for x in closeworksets]))
+    worksetConfig = CloseWorksets(cloudPath, worksetConfig)
     openOptions.SetOpenWorksetsConfiguration(worksetConfig)
     ######################################
 

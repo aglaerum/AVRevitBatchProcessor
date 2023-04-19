@@ -124,6 +124,7 @@ class BatchRvtConfig:
                             [revitFilePathData.RevitFilePath for revitFilePathData in revitFileListData]
                             if revitFileListData is not None else None
                         )
+
                     self.RevitFileList = revitFileList
                     self.RevitFileListData = revitFileListData
 

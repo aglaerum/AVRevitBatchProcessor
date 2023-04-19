@@ -96,7 +96,7 @@ def RevitFileExists(supportedRevitFileInfo):
 def GetSupportedRevitFiles(batchRvtConfig):
     supportedRevitFileList = None
 
-    revitFileListData = batchRvtConfig.ReadRevitFileListData(Output)
+    revitFileListData = batchRvtConfig.ReadRevitFileListData(Output)  # Ingen filtrering enda bortsett fra att alle med tab først blir exkludert
 
     if revitFileListData is not None:
         supportedRevitFileList = list(
@@ -515,11 +515,6 @@ def Main():
 
     commandSettingsData = TryGetCommandSettingsData()
     batchRvtConfig = batch_rvt_config.ConfigureBatchRvt(commandSettingsData, Output)
-    # if sys.argv[0]:
-    #     SETTINGSPATH = r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ACCAutoExporter\BatchRvt.Settings.json"
-    #     batchRvtSettings = batch_rvt_config.GetBatchRvtSettings(SETTINGSPATH, Output)
-    #     batch_rvt_config.ConfigureBatchRvtSettings(batchRvtConfig, batchRvtSettings, Output)
-
 
     if batchRvtConfig is None:
         aborted = True
@@ -573,10 +568,12 @@ def Main():
     Output()
     return
 
-
+profilefile = r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ACCAutoExporter\Cprofiler.txt"
+import profile
 
 try:
-    Main()
+    # Main()
+    profile.run('Main()')
 
 except Exception, e:
     avexept = traceback.format_exc()

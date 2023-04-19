@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-#
+# -*- coding: utf-8 -*-
+#
 # Revit Batch Processor
 #
 # Copyright (c) 2020  Dan Rumery, BVN
@@ -32,6 +33,7 @@ import path_util
 import revit_file_version
 import batch_rvt_util
 from batch_rvt_util import RevitVersion
+import re
 
 class RevitFilePathData:
     def __init__(self, revitFilePath, associatedData):
@@ -142,7 +144,11 @@ class RevitFileInfo():
             pathException = e
         self.revitFilePath = revitFilePath
         self.pathException = pathException
+
         return
+
+    def IsRserverModel(self):
+        return self.revitFilePath.lower().startswith(r"\\") and self.revitFilePath.lower().endswith(".rvt")
 
     def IsCloudModel(self):
         return self.GetRevitCloudModelInfo().IsValid()
@@ -164,6 +170,10 @@ class RevitFileInfo():
             )
 
     def GetFileSize(self):
+        # Todo: Hent størrelse på Rservermapper
+        if self.IsRserverModel():
+            foldersize = path_util.GetFolderSize(self.revitFilePath)
+            return foldersize
         return path_util.GetFileSize(self.revitFilePath)
 
     def TryGetRevitVersionText(self):
@@ -175,6 +185,8 @@ class RevitFileInfo():
         return revitVersionText
 
     def Exists(self):
+        if self.IsRserverModel():
+            return path_util.FileExistAsFolder(self.revitFilePath)
         return path_util.FileExists(self.revitFilePath)
 
 def FromFile(settingsFilePath):
@@ -200,6 +212,13 @@ class SupportedRevitFileInfo():
                     revitVersionNumber = RevitVersion.GetSupportedRevitVersion(revitVersionText)
         else:
             revitVersionText = self.revitFileInfo.TryGetRevitVersionText()
+            # AG Lagt til innhenting av versjon fra filbane
+            if not revitVersionText:
+                revitVersionText = self.AVTryGetVersionFromPath()
+            if not str.IsNullOrWhiteSpace(revitVersionText):
+                if RevitVersion.IsSupportedRevitVersionNumber(revitVersionText):
+                    revitVersionNumber = RevitVersion.GetSupportedRevitVersion(revitVersionText)
+
             if not str.IsNullOrWhiteSpace(revitVersionText):
                 if any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2015):
                     revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2015
@@ -222,6 +241,15 @@ class SupportedRevitFileInfo():
         self.revitVersionText = revitVersionText
         self.revitVersionNumber = revitVersionNumber
         return
+
+    def AVTryGetVersionFromPath(self):
+    # Extraxt 2022 from a path like Autodesk\Revit Server 2022\Projects\... using regex. Match Revit Server.
+        revitVersionText = None
+        try:
+            revitVersionText = re.search(r"Revit Server (\d{4})", self.revitFileInfo.revitFilePath).group(1)
+        except Exception, e:
+            pass
+        return revitVersionText
 
     def TryGetRevitVersionNumber(self):
         return self.revitVersionNumber

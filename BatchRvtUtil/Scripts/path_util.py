@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-#
+# -*- coding: utf-8 -*-
+#
 # Revit Batch Processor
 #
 # Copyright (c) 2020  Dan Rumery, BVN
@@ -23,7 +24,7 @@ import System
 from System import Environment, ArgumentException, StringComparison, Char
 import System.IO
 from System.IO import Path, File, Directory, FileInfo, DirectoryInfo, PathTooLongException
-
+import os
 import win32_mpr
 
 import sys
@@ -48,6 +49,9 @@ def HasFileExtension(filePath, extension):
 def FileExists(filePath):
     return File.Exists(filePath)
 
+def FileExistAsFolder(filePath):
+    return Directory.Exists(filePath)
+
 def GetFullPath(path):
     return Path.GetFullPath(path)
 
@@ -69,6 +73,15 @@ def GetFileSize(filePath):
     except Exception, e:
         pass
     return fileSize
+
+def GetFolderSize(filePath):
+    folderSize = None
+    try:
+        # Use System.IO to get size of directory
+        folderSize = os.path.getsize(filePath)
+    except Exception, e:
+        pass
+    return folderSize
 
 def GetLastWriteTimeUtc(filePath):
     lastWriteTime = None
