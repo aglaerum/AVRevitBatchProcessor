@@ -4,12 +4,12 @@ import os
 import csv
 import datetime
 import struct
+import sys
 import traceback
 import codecs
 
 import clr
 import System
-from script_util import Output
 
 # def Output(inp=None):
 #     if inp is not None:
@@ -19,13 +19,25 @@ from script_util import Output
 
 op = os.path.join
 
-main_volo_volder = r"C:\AVIFCExporter"
+# main_volo_volder = r"C:\AVIFCExporter"
+main_volo_volder = r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ExporterAV3656"
 input_rvt_folder = op(main_volo_volder, "Input_models")
 output_ifc_folder = op(main_volo_volder, "Output AG")
 mappings_folder = op(main_volo_volder, "FamilymappingFile")
 config_pset_folder = op(main_volo_volder, "Input_configs")
 
 main_config_folder = r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ExporterAV3656"
+
+""" Fra BatchRvtUtil """
+clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\bin\x64\Release\BatchRvtUtil.dll")
+import BatchRvtUtil
+""" Fra BatchRvtUtil """""
+
+
+from script_util import Output
+
+print BatchRvtUtil.RevitVersion.GetInstalledRevitVersions()
+
 
 def find_newest_revit():
     current_year = datetime.datetime.now().year

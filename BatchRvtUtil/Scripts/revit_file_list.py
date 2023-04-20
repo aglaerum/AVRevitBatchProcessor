@@ -179,9 +179,13 @@ class RevitFileInfo():
     def TryGetRevitVersionText(self):
         revitVersionText = None
         try:
-            revitVersionText = revit_file_version.GetRevitVersionText(self.revitFilePath)
-        except Exception, e:
-            pass
+            import AVFunksjoner
+            revitVersionText = AVFunksjoner.get_revit_file_version(self.revitFilePath)
+        except Exception:
+            try:
+                revitVersionText = revit_file_version.GetRevitVersionText(self.revitFilePath)
+            except Exception:
+                pass
         return revitVersionText
 
     def Exists(self):
@@ -212,12 +216,6 @@ class SupportedRevitFileInfo():
                     revitVersionNumber = RevitVersion.GetSupportedRevitVersion(revitVersionText)
         else:
             revitVersionText = self.revitFileInfo.TryGetRevitVersionText()
-            # AG Lagt til innhenting av versjon fra filbane
-            if not revitVersionText:
-                revitVersionText = self.AVTryGetVersionFromPath()
-            if not str.IsNullOrWhiteSpace(revitVersionText):
-                if RevitVersion.IsSupportedRevitVersionNumber(revitVersionText):
-                    revitVersionNumber = RevitVersion.GetSupportedRevitVersion(revitVersionText)
 
             if not str.IsNullOrWhiteSpace(revitVersionText):
                 if any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2015):
@@ -238,6 +236,10 @@ class SupportedRevitFileInfo():
                     revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2022
                 elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2023):
                     revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2023
+                else:
+                    revitVersionText = "Autodesk Revit {}".format(revitVersionText)
+                    revitVersionNumber = revitVersionText
+
         self.revitVersionText = revitVersionText
         self.revitVersionNumber = revitVersionNumber
         return

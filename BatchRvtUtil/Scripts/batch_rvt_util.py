@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-#
+# -*- coding: utf-8 -*-
+#
 # Revit Batch Processor
 #
 # Copyright (c) 2020  Dan Rumery, BVN
@@ -36,6 +37,7 @@ def GetExistingLoadedAssembly(assemblyName):
 
 def AddBatchRvtUtilAssemblyReference():
     try:
+        clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\bin\x64\Release\BatchRvtUtil.dll")
         clr.AddReference(BATCH_RVT_UTIL_ASSEMBLY_NAME)
     except IOException, e: # Can occur if PyRevit is installed. Need to use AddReferenceToFileAndPath() in this case.
         batchRvtScriptHostAssembly = GetExistingLoadedAssembly(BATCH_RVT_SCRIPT_HOST_ASSEMBLY_NAME)
