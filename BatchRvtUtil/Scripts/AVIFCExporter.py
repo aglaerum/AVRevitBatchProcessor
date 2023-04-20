@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+pass
+
+"""
+ALT MIDLERTIDIG DEAKTIVERT
+
 import clr
 
 clr.AddReference("RevitAPI")
@@ -17,12 +22,12 @@ import traceback
 
 
 opdir = os.path.dirname
-# HOMEPATH = opdir(opdir(opdir(sys.argv[0])))  # Hvorfor fungerer ikke dette??!
-# HOME_DIR = opdir(opdir(opdir(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVTools.Revit\site-packages\AutoIFCLibrary\IFCExportRBP.py")))
-HOME_DIR = opdir(opdir(opdir(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ACCAutoExporter\AutoIFCExporter\AVExporter.py")))
-PROGDATA_DIR = os.path.join(HOME_DIR, "ACCAutoExporter\AutoIFCExporter\progdata")
-IFCOUT_DIR = os.path.join(HOME_DIR, "IFCOut")
-PSETS_FILE = os.path.join(PROGDATA_DIR, "AVPropertySets.txt")
+# HOME_DIR = opdir(opdir(opdir(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ACCAutoExporter\AutoIFCExporter\AVExporter.py")))
+# PROGDATA_DIR = os.path.join(HOME_DIR, "ACCAutoExporter\AutoIFCExporter\progdata")
+# IFCOUT_DIR = os.path.join(HOME_DIR, "IFCOut")
+# PSETS_FILE = os.path.join(PROGDATA_DIR, "AVPropertySets.txt")
+
+IFC_OUT_DIR = r"C:\AVIFCExporter\Output AG"
 
 ####### Setup Logging #########
 
@@ -83,4 +88,6 @@ finally:
 
 SynchronizeWithCentral(DOC, "AutoIFCExport")
 RelinquishAll(DOC)
+
+"""
 

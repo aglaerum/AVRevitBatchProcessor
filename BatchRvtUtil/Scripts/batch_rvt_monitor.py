@@ -22,20 +22,6 @@
 import sys
 import traceback
 
-#################################################################################################################
-# Todo: Legg til variabler for kjøring i pycharm
-# Todo: Kanskje fjer alle baner som starter med C:\Program Files\
-if sys.argv[0]:
-    paths = [
-    r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtGUI\bin\x64\Release\Lib",
-    r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtGUI\bin\x64\Release\DLLs",
-    r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtGUI\bin\x64\Release\Scripts",
-    r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtGUI\bin\x64\Release",]
-
-    for p in paths:
-        sys.path.append(p)
-#################################################################################################################
-
 import clr
 import System
 clr.AddReference("System.Core")
@@ -58,13 +44,6 @@ import batch_rvt_util
 from batch_rvt_util import RevitVersion, ScriptDataUtil, BatchRvt
 import logging_util
 
-
-################################################################################################################
-# # Todo: For kjøring i pycharm
-# BATCHRVTSETTINGS = None
-# if sys.argv[0]:
-#     SETTINGSPATH = r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ACCAutoExporter\BatchRvt.Settings.json"
-#     BATCHRVTSETTINGS = batch_rvt_config.GetBatchRvtSettings(SETTINGSPATH, Output)
 
 def HasSupportedRevitFilePath(supportedRevitFileInfo):
     fullFilePath = supportedRevitFileInfo.GetRevitFileInfo().GetFullPath()
@@ -568,12 +547,8 @@ def Main():
     Output()
     return
 
-profilefile = r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ACCAutoExporter\Cprofiler.txt"
-import profile
-
 try:
-    # Main()
-    profile.run('Main()')
+    Main()
 
 except Exception, e:
     avexept = traceback.format_exc()
