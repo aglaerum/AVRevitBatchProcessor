@@ -1,24 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import os
-import csv
-import datetime
-import struct
-import sys
-import traceback
 import codecs
-
-import clr
-import System
-
-# def Output(inp=None):
-#     if inp is not None:
-#         print(inp)
-#     else:
-#         print("")
+import csv
+import os
+import traceback
 
 op = os.path.join
-
 # main_volo_volder = r"C:\AVIFCExporter"
 main_volo_volder = r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ExporterAV3656"
 input_rvt_folder = op(main_volo_volder, "Input_models")
@@ -28,33 +15,15 @@ config_pset_folder = op(main_volo_volder, "Input_configs")
 
 main_config_folder = r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ExporterAV3656"
 
-""" Fra BatchRvtUtil """
+# from AVFunksjoner import clr_batchrvtutil
+# clr_batchrvtutil()
+import clr
 clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\bin\x64\Release\BatchRvtUtil.dll")
-import BatchRvtUtil
-""" Fra BatchRvtUtil """""
-
-
 from script_util import Output
 
-print BatchRvtUtil.RevitVersion.GetInstalledRevitVersions()
+# def Output(message=""):
+#     print(message)
 
-
-def find_newest_revit():
-    current_year = datetime.datetime.now().year
-    search_years = list(range(current_year, current_year + 3))
-    search_years.reverse()
-
-    for year in search_years:
-        revit_path = "C:\\Program Files\\Autodesk\\Revit {0}".format(year)
-        if os.path.exists(revit_path):
-            Output("Found Revit {0} at {1}".format(year, revit_path))
-            return revit_path
-            break
-    else:
-        print("No installed version of Revit found.")
-
-clr.AddReferenceToFileAndPath(op(find_newest_revit(), "RevitAPI.dll"))
-from Autodesk.Revit import DB
 
 def create_file_paths_file(folder_path, output_file, file_ending):
     with open(output_file, 'wb') as fi:
@@ -64,14 +33,13 @@ def create_file_paths_file(folder_path, output_file, file_ending):
                     file_path = os.path.join(root, filename) + '\n'
                     fi.write(file_path.encode('utf-8'))
 
+
 def create_csv_file(rvt_file_list, pset_file_list, mapping_file_list, output_file):
     with open(output_file, 'w') as f:
         writer = csv.writer(f)
-        writer.writerow(["Version", "Project Name", "RVT File Path", "PSet File Path", "Mapping File Path"])
+        writer.writerow(["Project Name", "RVT File Path", "PSet File Path", "Mapping File Path"])
         with \
-                codecs.open(rvt_file_list, mode='r', encoding='utf-8')as rvt_file_list,\
-                codecs.open(pset_file_list, mode='r', encoding='utf-8') as pset_file_list,\
-                codecs.open(mapping_file_list, mode='r', encoding='utf-8') as mapping_file_list:
+                codecs.open(rvt_file_list, mode='r', encoding='utf-8') as rvt_file_list, codecs.open(pset_file_list, mode='r', encoding='utf-8') as pset_file_list, codecs.open(mapping_file_list, mode='r', encoding='utf-8') as mapping_file_list:
 
             rvt_files = rvt_file_list.readlines()
             pset_files = pset_file_list.readlines()
@@ -84,7 +52,6 @@ def create_csv_file(rvt_file_list, pset_file_list, mapping_file_list, output_fil
                 rvt_path = rvt_file
                 pset_path = ""
                 mapping_path = ""
-                version = get_revit_version(rvt_file)
 
                 for pset_file in pset_files:
                     if os.path.basename(pset_file.strip()).lower() in os.path.basename(rvt_file).lower():
@@ -96,11 +63,8 @@ def create_csv_file(rvt_file_list, pset_file_list, mapping_file_list, output_fil
                         mapping_path = mapping_file.strip()
                         break
 
-                writer.writerow([version, project_name, rvt_path, pset_path, mapping_path])
+                writer.writerow([project_name, rvt_path, pset_path, mapping_path])
 
-def get_revit_version(revit_path):
-    revit_version = DB.BasicFileInfo.Extract(revit_path)
-    return str(revit_version.Format)
 
 try:
     """ Create a file with all the paths to the rvt files in the folder and subfolders. """

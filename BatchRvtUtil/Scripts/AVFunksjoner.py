@@ -4,7 +4,13 @@ import os
 import clr
 import re
 
-clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\bin\x64\Release\BatchRvtUtil.dll")
+
+""" Nødvendig for kjøring i pycharm """
+def clr_batchrvtutil():
+    clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\bin\x64\Release\BatchRvtUtil.dll")
+
+clr_batchrvtutil()
+
 import BatchRvtUtil
 
 def get_installed_revit_paths():
@@ -39,3 +45,17 @@ def get_revit_file_version(path):
 
     fileinfo = DB.BasicFileInfo.Extract(path)
     return str(fileinfo.Format)
+
+# def find_newest_revit():
+#     current_year = datetime.datetime.now().year
+#     search_years = list(range(current_year, current_year + 3))
+#     search_years.reverse()
+#
+#     for year in search_years:
+#         revit_path = "C:\\Program Files\\Autodesk\\Revit {0}".format(year)
+#         if os.path.exists(revit_path):
+#             Output("Found Revit {0} at {1}".format(year, revit_path))
+#             return revit_path
+#             break
+#     else:
+#         print("No installed version of Revit found.")

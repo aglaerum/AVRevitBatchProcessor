@@ -19,12 +19,14 @@
 #
 #
 
-import clr
 import System
+import clr
+
 clr.AddReference("System.Core")
 clr.ImportExtensions(System.Linq)
 from System import AppDomain
 from System.IO import IOException, Path
+import AVFunksjoner
 
 BATCH_RVT_UTIL_ASSEMBLY_NAME = "BatchRvtUtil"
 BATCH_RVT_SCRIPT_HOST_ASSEMBLY_NAME = "BatchRvtScriptHost"
@@ -37,7 +39,7 @@ def GetExistingLoadedAssembly(assemblyName):
 
 def AddBatchRvtUtilAssemblyReference():
     try:
-        clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\bin\x64\Release\BatchRvtUtil.dll")
+        AVFunksjoner.clr_batchrvtutil()
         clr.AddReference(BATCH_RVT_UTIL_ASSEMBLY_NAME)
     except IOException, e: # Can occur if PyRevit is installed. Need to use AddReferenceToFileAndPath() in this case.
         batchRvtScriptHostAssembly = GetExistingLoadedAssembly(BATCH_RVT_SCRIPT_HOST_ASSEMBLY_NAME)
@@ -49,7 +51,4 @@ def AddBatchRvtUtilAssemblyReference():
     return
 
 AddBatchRvtUtilAssemblyReference()
-
-import BatchRvtUtil
-from BatchRvtUtil import *
 
