@@ -15,14 +15,13 @@ config_pset_folder = op(main_volo_volder, "Input_configs")
 
 main_config_folder = r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ExporterAV3656"
 
-# from AVFunksjoner import clr_batchrvtutil
-# clr_batchrvtutil()
-import clr
-clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\bin\x64\Release\BatchRvtUtil.dll")
-from script_util import Output
+# clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\bin\x64\Release\BatchRvtUtil.dll")
 
-# def Output(message=""):
-#     print(message)
+
+# from script_util import Output
+
+def Output(s=""):
+    print(str(s))
 
 
 def create_file_paths_file(folder_path, output_file, file_ending):

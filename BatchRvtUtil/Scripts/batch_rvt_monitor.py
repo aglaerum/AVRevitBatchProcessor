@@ -80,7 +80,6 @@ def GetSupportedRevitFiles(batchRvtConfig):
     supportedRevitFileList = None
 
     revitFileListData = batchRvtConfig.ReadRevitFileListData(Output)  # Ingen filtrering enda bortsett fra att alle med tab først blir exkludert
-    Output("revitFileListData: {}".format(str(revitFileListData)))
 
     if revitFileListData is not None:
         supportedRevitFileList = list(revit_file_list.SupportedRevitFileInfo(revitFilePathData) for revitFilePathData in revitFileListData)
@@ -377,7 +376,7 @@ def RunBatchRevitTasks(batchRvtConfig):
     if not aborted:
         Output()
         Output("Starting batch operation...")
-        aborted = ProcessRevitFiles(batchRvtConfig, supportedRevitFileList)
+        # aborted = ProcessRevitFiles(batchRvtConfig, supportedRevitFileList)
 
     if not aborted:
         if batchRvtConfig.ExecutePostProcessingScript:

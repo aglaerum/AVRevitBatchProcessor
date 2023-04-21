@@ -21,6 +21,7 @@
 
 import clr
 import System
+
 clr.AddReference("System.Core")
 clr.ImportExtensions(System.Linq)
 from System import ArgumentException, NotSupportedException, StringSplitOptions, Guid
@@ -35,52 +36,61 @@ import batch_rvt_util
 from batch_rvt_util import RevitVersion
 import re
 
+
 class RevitFilePathData:
     def __init__(self, revitFilePath, associatedData):
         self.RevitFilePath = revitFilePath.Trim()
         self.AssociatedData = [value.Trim() for value in associatedData]
         return
 
+
 def FirstOrDefault(items, default=None):
     for item in items:
         return item
     return default
 
+
 def GetRevitFileListData(rows):
-    return [
-            RevitFilePathData(row[0], row[1:])
-            for row in rows
-            if not str.IsNullOrWhiteSpace(FirstOrDefault(row)) # Ignores rows where the first column's cell value is empty.
+    return [RevitFilePathData(row[0], row[1:]) for row in rows if not str.IsNullOrWhiteSpace(FirstOrDefault(row))  # Ignores rows where the first column's cell value is empty.
         ]
+
 
 def FromTextFile(textFilePath):
     rows = text_file_util.GetRowsFromTextFile(textFilePath)
     return GetRevitFileListData(rows)
 
+
 def FromText(text):
     rows = text_file_util.GetRowsFromText(text)
     return GetRevitFileListData(rows)
+
 
 def FromLines(lines):
     rows = text_file_util.GetRowsFromLines(lines)
     return GetRevitFileListData(rows)
 
+
 def FromCSVFile(csvFilePath):
-        rows = csv_util.GetRowsFromCSVFile(csvFilePath)
-        return GetRevitFileListData(rows)
+    rows = csv_util.GetRowsFromCSVFile(csvFilePath)
+    return GetRevitFileListData(rows)
+
 
 def IsExcelInstalled():
     return System.Type.GetTypeFromProgID("Excel.Application") is not None
 
+
 def HasExcelFileExtension(filePath):
     return any(path_util.HasFileExtension(filePath, extension) for extension in [".xlsx", ".xls"])
+
 
 def FromExcelFile(excelFilePath):
     import excel_util
     return GetRevitFileListData(excel_util.ReadRowsTextFromWorkbook(excelFilePath))
 
+
 def FromConsole():
     return FromLines(console_util.ReadLines())
+
 
 class RevitCloudModelInfo:
     def __init__(self, cloudModelDescriptor):
@@ -91,21 +101,17 @@ class RevitCloudModelInfo:
         self.isValid = False
         parts = self.GetCloudModelDescriptorParts(cloudModelDescriptor)
         numberOfParts = len(parts)
-        if numberOfParts > 1 :
+        if numberOfParts > 1:
             revitVersionPart = str.Empty
             otherParts = parts
-            if numberOfParts > 2 :
+            if numberOfParts > 2:
                 revitVersionPart = parts[0]
                 otherParts = parts[1:]
             self.projectGuid = self.SafeParseGuidText(otherParts[0])
             self.modelGuid = self.SafeParseGuidText(otherParts[1])
             if RevitVersion.IsSupportedRevitVersionNumber(revitVersionPart):
                 self.revitVersionText = revitVersionPart
-            self.isValid = (
-                    self.projectGuid is not None
-                    and
-                    self.modelGuid is not None
-                )
+            self.isValid = (self.projectGuid is not None and self.modelGuid is not None)
         return
 
     def IsValid(self):
@@ -130,17 +136,18 @@ class RevitCloudModelInfo:
     def GetCloudModelDescriptor(self):
         return self.cloudModelDescriptor
 
+
 class RevitFileInfo():
     def __init__(self, revitFilePath):
         self.cloudModelInfo = RevitCloudModelInfo(revitFilePath)
         pathException = None
         try:
             revitFilePath = path_util.GetFullPath(revitFilePath)
-        except ArgumentException, e: # Catch exceptions such as 'Illegal characters in path.'
+        except ArgumentException, e:  # Catch exceptions such as 'Illegal characters in path.'
             pathException = e
-        except NotSupportedException, e: # Catch exceptions such as 'The given path's format is not supported.'
+        except NotSupportedException, e:  # Catch exceptions such as 'The given path's format is not supported.'
             pathException = e
-        except PathTooLongException, e: # Catch exceptions such as 'The specified path, file name, or both are too long.'
+        except PathTooLongException, e:  # Catch exceptions such as 'The specified path, file name, or both are too long.'
             pathException = e
         self.revitFilePath = revitFilePath
         self.pathException = pathException
@@ -163,11 +170,7 @@ class RevitFileInfo():
         return isinstance(self.pathException, PathTooLongException)
 
     def GetFullPath(self):
-        return (
-                self.revitFilePath if not self.IsCloudModel()
-                else
-                self.GetRevitCloudModelInfo().GetCloudModelDescriptor()
-            )
+        return (self.revitFilePath if not self.IsCloudModel() else self.GetRevitCloudModelInfo().GetCloudModelDescriptor())
 
     def GetFileSize(self):
         # Todo: Hent størrelse på Rservermapper
@@ -193,6 +196,7 @@ class RevitFileInfo():
             return path_util.FileExistAsFolder(self.revitFilePath)
         return path_util.FileExists(self.revitFilePath)
 
+
 def FromFile(settingsFilePath):
     revitFileListData = None
     if text_file_util.HasTextFileExtension(settingsFilePath):
@@ -202,6 +206,7 @@ def FromFile(settingsFilePath):
     elif HasExcelFileExtension(settingsFilePath):
         revitFileListData = FromExcelFile(settingsFilePath)
     return revitFileListData
+
 
 class SupportedRevitFileInfo():
     def __init__(self, revitFilePathData):
@@ -245,7 +250,7 @@ class SupportedRevitFileInfo():
         return
 
     def AVTryGetVersionFromPath(self):
-    # Extraxt 2022 from a path like Autodesk\Revit Server 2022\Projects\... using regex. Match Revit Server.
+        # Extraxt 2022 from a path like Autodesk\Revit Server 2022\Projects\... using regex. Match Revit Server.
         revitVersionText = None
         try:
             revitVersionText = re.search(r"Revit Server (\d{4})", self.revitFileInfo.revitFilePath).group(1)
@@ -270,4 +275,3 @@ class SupportedRevitFileInfo():
 
     def GetRevitCloudModelInfo(self):
         return self.GetRevitFileInfo().GetRevitCloudModelInfo()
-

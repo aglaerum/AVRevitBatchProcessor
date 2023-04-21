@@ -41,6 +41,7 @@ def AddBatchRvtUtilAssemblyReference():
     try:
         AVFunksjoner.clr_batchrvtutil()
         clr.AddReference(BATCH_RVT_UTIL_ASSEMBLY_NAME)
+        print "BatchRvtUtil assembly reference added."
     except IOException, e: # Can occur if PyRevit is installed. Need to use AddReferenceToFileAndPath() in this case.
         batchRvtScriptHostAssembly = GetExistingLoadedAssembly(BATCH_RVT_SCRIPT_HOST_ASSEMBLY_NAME)
         clr.AddReference(batchRvtScriptHostAssembly)
@@ -52,3 +53,7 @@ def AddBatchRvtUtilAssemblyReference():
 
 AddBatchRvtUtilAssemblyReference()
 
+# noinspection PyUnresolvedReferences
+import BatchRvtUtil
+# noinspection PyUnresolvedReferences
+from BatchRvtUtil import *
