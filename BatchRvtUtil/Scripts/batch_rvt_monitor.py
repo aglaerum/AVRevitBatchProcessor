@@ -22,8 +22,11 @@
 import sys
 import traceback
 
+import AVFunksjoner
+# import BatchRvtUtil
 import clr
 import System
+from revit_file_list import SupportedRevitFileInfo
 
 clr.AddReference("System.Core")
 clr.ImportExtensions(System.Linq)
@@ -52,7 +55,7 @@ def HasSupportedRevitFilePath(supportedRevitFileInfo):
 
 
 def HasSupportedRevitVersion(supportedRevitFileInfo):
-    return (supportedRevitFileInfo.TryGetRevitVersionNumber() in RevitVersion.GetInstalledRevitVersions())
+    return supportedRevitFileInfo.TryGetRevitVersionNumber() in RevitVersion.GetInstalledRevitVersions()
 
 
 def GetRevitFileSize(supportedRevitFileInfo):
@@ -164,9 +167,13 @@ def ExecutePostProcessingScript(batchRvtConfig, output):
 
 
 def RunSingleRevitTask(batchRvtConfig):
+    Output("Running single task operation...")
     aborted = False
 
     revitVersion = batchRvtConfig.SingleRevitTaskRevitVersion
+    Output("revitVersion: " + str(revitVersion))
+    revitVersion = AVFunksjoner.get_revit_file_version(batchRvtConfig.RevitFilePath)
+    Output("revitVersion: " + str(revitVersion))
     Output()
     Output("Revit Version:")
     Output()
@@ -212,7 +219,7 @@ def RunSingleRevitTask(batchRvtConfig):
 
 def GetRevitVersionForRevitFileSession(batchRvtConfig, supportedRevitFileInfo):
     revitVersion = RevitVersion.GetMinimumInstalledRevitVersion()
-    if (batchRvtConfig.RevitFileProcessingOption == BatchRvt.RevitFileProcessingOption.UseSpecificRevitVersion):
+    if batchRvtConfig.RevitFileProcessingOption == BatchRvt.RevitFileProcessingOption.UseSpecificRevitVersion:
         revitVersion = batchRvtConfig.BatchRevitTaskRevitVersion
     elif HasSupportedRevitVersion(supportedRevitFileInfo):
         revitVersion = supportedRevitFileInfo.TryGetRevitVersionNumber()
@@ -220,10 +227,11 @@ def GetRevitVersionForRevitFileSession(batchRvtConfig, supportedRevitFileInfo):
 
 
 def GroupByRevitVersion(batchRvtConfig, supportedRevitFileList):
-    return (supportedRevitFileList.GroupBy(lambda supportedRevitFileInfo: GetRevitVersionForRevitFileSession(batchRvtConfig, supportedRevitFileInfo)).OrderBy(lambda g: g.Key).Select(lambda g: (g.Key, g.ToList())).ToList())
+    return supportedRevitFileList.GroupBy(lambda supportedRevitFileInfo: GetRevitVersionForRevitFileSession(batchRvtConfig, supportedRevitFileInfo)).OrderBy(lambda g: g.Key).Select(lambda g: (g.Key, g.ToList())).ToList()
 
 
 def ProcessRevitFiles(batchRvtConfig, supportedRevitFileList):
+    Output("Processing Revit files...")
     aborted = False
 
     totalFilesCount = len(supportedRevitFileList)
@@ -245,6 +253,7 @@ def ProcessRevitFiles(batchRvtConfig, supportedRevitFileList):
                 sessionRevitFiles = [queuedRevitFiles[0]]
                 queuedRevitFiles = queuedRevitFiles[1:]
 
+
             sessionFilesCount = len(sessionRevitFiles)
             if len(sessionRevitFiles) == 1:
                 Output()
@@ -257,7 +266,8 @@ def ProcessRevitFiles(batchRvtConfig, supportedRevitFileList):
                 batch_rvt_monitor_util.ShowSupportedRevitFileInfo(supportedRevitFileInfo, Output)
 
             Output()
-            Output("Starting Revit " + RevitVersion.GetRevitVersionText(revitVersion) + " session...")
+            Output("--------------- Starter " + str(revitVersion) + " ---------")
+
 
             for index, supportedRevitFileInfo in enumerate(sessionRevitFiles):
 
@@ -270,6 +280,7 @@ def ProcessRevitFiles(batchRvtConfig, supportedRevitFileList):
                     cloudModelId = revitCloudModelInfo.GetModelGuid().ToString()
                 else:
                     revitFilePath = supportedRevitFileInfo.GetRevitFileInfo().GetFullPath()
+
                     cloudProjectId = str.Empty
                     cloudModelId = str.Empty
 
@@ -310,6 +321,7 @@ def ProcessRevitFiles(batchRvtConfig, supportedRevitFileList):
             batchRvtScriptsFolderPath = BatchRvt.GetBatchRvtScriptsFolderPath()
 
             while scriptDatas.Any():
+
                 nextProgressNumber = batch_rvt_monitor_util.RunScriptedRevitSession(revitVersion, batchRvtScriptsFolderPath, batchRvtConfig.ScriptFilePath, scriptDatas, progressNumber, batchRvtConfig.ProcessingTimeOutInMinutes, batchRvtConfig.ShowRevitProcessErrorMessages, batchRvtConfig.TestModeFolderPath, Output)
 
                 if nextProgressNumber is None:
@@ -343,6 +355,7 @@ def ProcessRevitFiles(batchRvtConfig, supportedRevitFileList):
 
 
 def RunBatchRevitTasks(batchRvtConfig):
+    Output("Running BatchRvt tasks...")
     aborted = False
 
     if not aborted:
@@ -376,7 +389,7 @@ def RunBatchRevitTasks(batchRvtConfig):
     if not aborted:
         Output()
         Output("Starting batch operation...")
-        # aborted = ProcessRevitFiles(batchRvtConfig, supportedRevitFileList)
+        aborted = ProcessRevitFiles(batchRvtConfig, supportedRevitFileList)
 
     if not aborted:
         if batchRvtConfig.ExecutePostProcessingScript:

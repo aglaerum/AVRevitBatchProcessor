@@ -1,93 +1,70 @@
 # -*- coding: utf-8 -*-
 
-pass
 
-"""
-ALT MIDLERTIDIG DEAKTIVERT
+# import clr
 
-import clr
+# clr.AddReference("RevitAPI")
+# clr.AddReference("RevitAPIUI")
+# clr.AddReference("RevitAPIIFC")
 
-clr.AddReference("RevitAPI")
-clr.AddReference("RevitAPIUI")
-clr.AddReference("RevitAPIIFC")
+# from AVFunksjoner import clr_highest_revitapi
+# clr_highest_revitapi()
 
-from Autodesk.Revit import DB, UI
-import sys
-import os
-import AVIFCExporterLib
 import revit_script_util
 from revit_script_util import Output
-from revit_file_util import RelinquishAll, SynchronizeWithCentral
+
+from Autodesk.Revit import DB, UI
+import AVIFCExporterLib
 import traceback
-
-
-opdir = os.path.dirname
-# HOME_DIR = opdir(opdir(opdir(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ACCAutoExporter\AutoIFCExporter\AVExporter.py")))
-# PROGDATA_DIR = os.path.join(HOME_DIR, "ACCAutoExporter\AutoIFCExporter\progdata")
-# IFCOUT_DIR = os.path.join(HOME_DIR, "IFCOut")
-# PSETS_FILE = os.path.join(PROGDATA_DIR, "AVPropertySets.txt")
-
-IFC_OUT_DIR = r"C:\AVIFCExporter\Output AG"
-
-####### Setup Logging #########
-
-def log(logitem=None):
-    if logitem is None:
-        logitem = ""
-    Output("AVLog: {}".format(str(logitem)))
-
-# for VARITEM in list(vars()):
-#     log(VARITEM)
-
-
-####### Globale #########
+import AVFunksjoner as avf
+import csv
 
 SESSIONID = revit_script_util.GetSessionId()
 UIAPP = revit_script_util.GetUIApplication()  # type: UI.UIApplication
-# UIDOC = UIAPP.ActiveUIDocument  # type: UI.UIDocument
 
 DOC = revit_script_util.GetScriptDocument()  # type: DB.Document
 REVITFILEPATH = revit_script_util.GetRevitFilePath()
 
-IFCOUT = r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ACCAutoExporter\IFCOut"
+csvpath = avf.generated_paths_and_settings_path
 
-####### Defs #########
+
+def read_csv_file(csv_file_path, search_path):
+    # define the row names
+    row_names = avf.CSWROWS
+
+    with open(csv_file_path, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            if row[row_names[0]] == search_path:
+                # append the values to the corresponding variables
+                # rvt_file_path = row[row_names[0]]
+                # project_name = row[row_names[1]]
+                pset_file_path = row[row_names[2]]
+                mapping_file_path = row[row_names[3]]
+                ifc_folder_path = row[row_names[4]]
+
+    return pset_file_path, mapping_file_path, ifc_folder_path
+
 
 def exporter(doc, outfolder, psetfile):
     # type: (DB.Document, str) -> None
     ifcviews = AVIFCExporterLib.samle_3dViews(doc)
-    log("Samlet {} 3D Views...".format(str(len(ifcviews))))
+    Output("Samlet {} 3D Views...".format(str(len(ifcviews))))
     for view in ifcviews:
-        # uidoc.ActiveView = view
         AVIFCExporterLib.export_view(view, outfolder, psetfile)
 
 
-######################### Sjekk Grunnleggende ####################
+values = read_csv_file(csvpath, REVITFILEPATH)
+Output(values)
 
-log("IFCOut mappe:")
-log(IFCOUT)
-log("Sys Paths:")
-for alog in sys.path:
-    log(alog)
-
-log("Revit filbane:")
-log(REVITFILEPATH)
-log("Starter IFC Export!")
-
-TR = None
-try:
-    # open_worksets(DOC)
-    TR = DB.Transaction(DOC, "IFCExport")
-    TR.Start()
-    exporter(DOC, IFCOUT, PSETS_FILE)
-except Exception as fmeld:
-    log(traceback.format_exc())
-finally:
-    if TR is not None:
-        TR.RollBack()
-
-SynchronizeWithCentral(DOC, "AutoIFCExport")
-RelinquishAll(DOC)
-
-"""
-
+# TR = None
+# try:
+#     Output("Start IFC Export...")
+#     TR = DB.Transaction(DOC, "IFCExport")
+#     TR.Start()
+#     exporter(DOC, IFCOUT, PSETS_FILE)
+# except Exception as fmeld:
+#     Output(traceback.format_exc())
+# finally:
+#     if TR is not None:
+#         TR.RollBack()

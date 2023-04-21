@@ -253,3 +253,5 @@ paket-files/
 
 # BVN Inno setup script
 *RevitBatchProcessor_BVN.iss
+*.dll
+*.xml

@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-#
+# -*- coding: utf-8 -*-
+#
 # Revit Batch Processor
 #
 # Copyright (c) 2020  Dan Rumery, BVN
@@ -20,6 +21,7 @@
 
 import clr
 import System
+
 clr.AddReference("System.Core")
 clr.ImportExtensions(System.Linq)
 
@@ -70,6 +72,7 @@ def ShowSupportedRevitFileInfo(supportedRevitFileInfo, output):
             output("\t" + "Revit version: " + revitVersionText)
     return
 
+
 def UsingClientHandle(serverStream, action):
     result = None
     try:
@@ -78,6 +81,7 @@ def UsingClientHandle(serverStream, action):
         serverStream.DisposeLocalCopyOfClientHandle()
     return result
 
+
 def ShowRevitScriptOutput(scriptOutputStream, output, pendingReadLineTask=None):
     outputLines, pendingReadLineTask = stream_io_util.ReadAvailableLines(scriptOutputStream, pendingReadLineTask)
     if outputLines.Any():
@@ -85,23 +89,26 @@ def ShowRevitScriptOutput(scriptOutputStream, output, pendingReadLineTask=None):
             output("\t" + "- " + line)
     return pendingReadLineTask
 
+
 def ShowRevitProcessOutput(processOutputStream, output, pendingReadLineTask=None):
     outputLines, pendingReadLineTask = stream_io_util.ReadAvailableLines(processOutputStream, pendingReadLineTask)
     if outputLines.Any():
         for line in outputLines:
-            if False: # Change to True to see Revit standard output (non-script output)
+            if False:  # Change to True to see Revit standard output (non-script output)
                 output("\t" + "- [ REVIT MESSAGE ] : " + line)
     return pendingReadLineTask
+
 
 def ShowRevitProcessError(processErrorStream, showRevitProcessErrorMessages, output, pendingReadLineTask=None):
     outputLines, pendingReadLineTask = stream_io_util.ReadAvailableLines(processErrorStream, pendingReadLineTask)
     if outputLines.Any():
         for line in outputLines:
-            if line.StartsWith("log4cplus:"): # ignore pesky log4cplus messages (an Autodesk thing?)
+            if line.StartsWith("log4cplus:"):  # ignore pesky log4cplus messages (an Autodesk thing?)
                 pass
             elif showRevitProcessErrorMessages:
                 output("\t" + "- [ REVIT ERROR MESSAGE ] : " + line)
     return pendingReadLineTask
+
 
 def TerminateHostRevitProcess(hostRevitProcess, output):
     try:
@@ -112,42 +119,22 @@ def TerminateHostRevitProcess(hostRevitProcess, output):
         exception_util.LogOutputErrorDetails(e, output)
     return
 
-def RunScriptedRevitSession(
-        revitVersion,
-        batchRvtScriptsFolderPath,
-        scriptFilePath,
-        scriptDatas,
-        progressNumber,
-        processingTimeOutInMinutes,
-        showRevitProcessErrorMessages,
-        testModeFolderPath,
-        output
-    ):
+
+def RunScriptedRevitSession(revitVersion, batchRvtScriptsFolderPath, scriptFilePath, scriptDatas, progressNumber, processingTimeOutInMinutes, showRevitProcessErrorMessages, testModeFolderPath, output):
     scriptDataFilePath = ScriptDataUtil.GetUniqueScriptDataFilePath()
     ScriptDataUtil.SaveManyToFile(scriptDataFilePath, scriptDatas)
     progressRecordFilePath = ScriptDataUtil.GetProgressRecordFilePath(scriptDataFilePath)
 
-    serverStream = server_util.CreateAnonymousPipeServer(
-            server_util.IN,
-            server_util.HandleInheritability.Inheritable
-        )
-    
+    serverStream = server_util.CreateAnonymousPipeServer(server_util.IN, server_util.HandleInheritability.Inheritable)
+
     def serverStreamAction():
         scriptOutputStreamReader = stream_io_util.GetStreamReader(serverStream)
-        
+
         def streamReaderAction():
             scriptOutputPipeHandleString = serverStream.GetClientHandleAsString()
 
             def clientHandleAction():
-                hostRevitProcess = revit_process_host.StartHostRevitProcess(
-                        revitVersion,
-                        batchRvtScriptsFolderPath,
-                        scriptFilePath,
-                        scriptDataFilePath,
-                        progressNumber,
-                        scriptOutputPipeHandleString,
-                        testModeFolderPath
-                    )
+                hostRevitProcess = revit_process_host.StartHostRevitProcess(revitVersion, batchRvtScriptsFolderPath, scriptFilePath, scriptDataFilePath, progressNumber, scriptOutputPipeHandleString, testModeFolderPath)
                 return hostRevitProcess
 
             hostRevitProcess = UsingClientHandle(serverStream, clientHandleAction)
@@ -156,26 +143,23 @@ def RunScriptedRevitSession(
 
             global_test_mode.ExportRevitProcessId(hostRevitProcessId)
 
-            snapshotDataFilePaths = [
-                    snapshot_data_util.GetSnapshotDataFilePath(scriptData.DataExportFolderPath.GetValue())
-                    for scriptData in scriptDatas
-                ]
+            snapshotDataFilePaths = [snapshot_data_util.GetSnapshotDataFilePath(scriptData.DataExportFolderPath.GetValue()) for scriptData in scriptDatas]
 
-            pendingReadLineTask = [None] # Needs to be a list so it can be captured by reference in closures.
-            pendingProcessOutputReadLineTask = [None] # As above.
-            pendingProcessErrorReadLineTask = [None] # As above.
-            
-            snapshotDataFilesExistTimestamp = [None] # Needs to be a list so it can be captured by reference in closures.
+            pendingReadLineTask = [None]  # Needs to be a list so it can be captured by reference in closures.
+            pendingProcessOutputReadLineTask = [None]  # As above.
+            pendingProcessErrorReadLineTask = [None]  # As above.
+
+            snapshotDataFilesExistTimestamp = [None]  # Needs to be a list so it can be captured by reference in closures.
 
             currentProgressRecordNumber = [0]  # Needs to be a list so it can be captured by reference in closures.
-            progressRecordCheckTimeUtc = [time_util.GetDateTimeUtcNow()] # As above.
-            progressRecordChangedTimeUtc = [time_util.GetDateTimeUtcNow()] # As above.
+            progressRecordCheckTimeUtc = [time_util.GetDateTimeUtcNow()]  # As above.
+            progressRecordChangedTimeUtc = [time_util.GetDateTimeUtcNow()]  # As above.
 
             def monitoringAction():
                 pendingProcessOutputReadLineTask[0] = ShowRevitProcessOutput(hostRevitProcess.StandardOutput, output, pendingProcessOutputReadLineTask[0])
                 pendingProcessErrorReadLineTask[0] = ShowRevitProcessError(hostRevitProcess.StandardError, showRevitProcessErrorMessages, output, pendingProcessErrorReadLineTask[0])
                 pendingReadLineTask[0] = ShowRevitScriptOutput(scriptOutputStreamReader, output, pendingReadLineTask[0])
-                
+
                 if time_util.GetSecondsElapsedSinceUtc(progressRecordCheckTimeUtc[0]) > REVIT_PROGRESS_CHECK_INTERVAL_IN_SECONDS:
                     progressRecordCheckTimeUtc[0] = time_util.GetDateTimeUtcNow()
                     progressRecordNumber = ScriptDataUtil.GetProgressNumber(progressRecordFilePath)
@@ -214,15 +198,15 @@ def RunScriptedRevitSession(
                     output()
                     output("WARNING: an error occurred in the cheeky Revit dialog box dismisser!")
                     exception_util.LogOutputErrorDetails(e, output)
-                
+
                 return
 
             monitor_revit_process.MonitorHostRevitProcess(hostRevitProcess, monitoringAction, output)
             return
-        
+
         stream_io_util.UsingStream(scriptOutputStreamReader, streamReaderAction)
         return
-    
+
     stream_io_util.UsingStream(serverStream, serverStreamAction)
 
     lastProgressNumber = ScriptDataUtil.GetProgressNumber(progressRecordFilePath)

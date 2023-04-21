@@ -4,7 +4,10 @@ import os
 
 from Autodesk.Revit import DB
 from Autodesk.Revit.DB import IFC
-from AVIFCExporter import log, PROGDATA_DIR
+
+# noinspection PyUnresolvedReferences
+import revit_script_util
+from revit_script_util import Output
 
 """ Legg til og ekskluder ekstra kategorier"""
 IncludeCatList = [
@@ -20,20 +23,20 @@ ExcludeCatList = [
 
 def samle_3dViews(doc):
     # type: (DB.Document) -> list[DB.View3D]
-    log("Samler 3D View!")
+    Output("Samler 3D View!")
     views3d = DB.FilteredElementCollector(doc).OfClass(DB.View3D).ToElements()
 
     views = list(filter(lambda x: not x.IsTemplate and "ifc" in str(x.Name).lower(), views3d))
     for v in views:
-        log(v.Name)
+        Output(v.Name)
     if not views:
-        log("Fant ingen view! Bruker opptil 2 tilfeldige 3DView")
+        Output("Fant ingen view! Bruker opptil 2 tilfeldige 3DView")
         views = list(filter(lambda x: not x.IsTemplate, views3d))[:2]
     return views
 
 
 def export_view(view, outfolder, psets_file):
-    log("Eksporterer: {} - {}".format(type(view).__name__, view.Name))
+    Output("Eksporterer: {} - {}".format(type(view).__name__, view.Name))
 
     extra_elems, elements_exclude = Setup_Export(view.Document)
 
@@ -54,9 +57,9 @@ def export_view(view, outfolder, psets_file):
         os.makedirs(outfolder)
 
     if view.Document.Export(outfolder, ifcfilnavn, Avoptions):
-        log("IFC eksportert til:\n{}".format(os.path.join(outfolder, ifcfilnavn)))
+        Output("IFC eksportert til:\n{}".format(os.path.join(outfolder, ifcfilnavn)))
     else:
-        log("IFC eksporter svarer at IFC ikke ble eksportert")
+        Output("IFC eksporter svarer at IFC ikke ble eksportert")
 
 
 def Setup_Export(doc):
@@ -228,7 +231,7 @@ def IncludeCats(doc):
     elems = set()
     # Todo: Dette blir sikkert feil
     cats = [x for x in doc.Settings.Categories.GetEnumerator() if x in IncludeCatList]  # type: list[DB.Category]
-    log("\n".join(str(x) for x in cats))
+    Output("\n".join(str(x) for x in cats))
     if cats:
         cats = sorted((x for x in cats if x.state is True), key=lambda x: str(x))
         elems.update(get_cat_elems(doc, cats))
@@ -239,7 +242,7 @@ def ExcludeCats(doc):
     # type: (DB.Document, bool, bool) -> set[DB.Element]
     elems = set()
     cats = [x for x in doc.Settings.Categories.GetEnumerator() if x in ExcludeCatList]  # type: list[DB.Category]
-    log("\n".join(str(x) for x in cats))
+    Output("\n".join(str(x) for x in cats))
     if cats:
         cats = [x for x in cats if x.state is True]
         elems.update(get_cat_elems(doc, cats))
@@ -249,10 +252,6 @@ def ExcludeCats(doc):
 def safefilename(filnavn):
     keepcharacters = (' ', '-', '_', ")", "(", ".")
     return "".join(c for c in filnavn if c.isalnum() or c in keepcharacters)
-
-
-def get_exp_class_mapping_txt():
-    return os.path.join(PROGDATA_DIR, "IFC-eksport3D_korrekt_Redusert.txt")
 
 
 def get_cat_elems(doku, cats=None):

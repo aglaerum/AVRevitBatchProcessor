@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-
+import AVFunksjoner
 import clr
 import System
 
@@ -35,6 +35,7 @@ import revit_file_version
 import batch_rvt_util
 from batch_rvt_util import RevitVersion
 import re
+import traceback
 
 
 class RevitFilePathData:
@@ -182,13 +183,10 @@ class RevitFileInfo():
     def TryGetRevitVersionText(self):
         revitVersionText = None
         try:
-            import AVFunksjoner
             revitVersionText = AVFunksjoner.get_revit_file_version(self.revitFilePath)
+            # revitVersionText = revit_file_version.GetRevitVersionText(self.revitFilePath)
         except Exception:
-            try:
-                revitVersionText = revit_file_version.GetRevitVersionText(self.revitFilePath)
-            except Exception:
-                pass
+            revitVersionText = "PISS"
         return revitVersionText
 
     def Exists(self):
@@ -214,6 +212,7 @@ class SupportedRevitFileInfo():
         self.revitFilePathData = revitFilePathData
         revitVersionText = None
         revitVersionNumber = None
+
         if self.revitFileInfo.IsCloudModel():
             revitVersionText = self.revitFileInfo.GetRevitCloudModelInfo().GetRevitVersionText()
             if not str.IsNullOrWhiteSpace(revitVersionText):
@@ -222,31 +221,31 @@ class SupportedRevitFileInfo():
         else:
             revitVersionText = self.revitFileInfo.TryGetRevitVersionText()
 
-            if not str.IsNullOrWhiteSpace(revitVersionText):
-                if any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2015):
-                    revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2015
-                elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2016):
-                    revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2016
-                elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2017):
-                    revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2017
-                elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2018):
-                    revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2018
-                elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2019):
-                    revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2019
-                elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2020):
-                    revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2020
-                elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2021):
-                    revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2021
-                elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2022):
-                    revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2022
-                elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2023):
-                    revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2023
-                else:
-                    revitVersionText = "Autodesk Revit {}".format(revitVersionText)
-                    revitVersionNumber = revitVersionText
+            # if not str.IsNullOrWhiteSpace(revitVersionText):
+            #     if any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2015):
+            #         revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2015
+            #     elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2016):
+            #         revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2016
+            #     elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2017):
+            #         revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2017
+            #     elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2018):
+            #         revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2018
+            #     elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2019):
+            #         revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2019
+            #     elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2020):
+            #         revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2020
+            #     elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2021):
+            #         revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2021
+            #     elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2022):
+            #         revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2022
+            #     elif any(revitVersionText.StartsWith(prefix) for prefix in revit_file_version.REVIT_VERSION_TEXT_PREFIXES_2023):
+            #         revitVersionNumber = RevitVersion.SupportedRevitVersion.Revit2023
+
+            revitVersionNumber = revitVersionText
+            # revitVersionText = "Autodesk Revit {}".format(str(revitVersionNumber))
 
         self.revitVersionText = revitVersionText
-        self.revitVersionNumber = revitVersionNumber
+        self.revitVersionNumber = RevitVersion.GetSupportedRevitVersion(self.revitVersionText)
         return
 
     def AVTryGetVersionFromPath(self):

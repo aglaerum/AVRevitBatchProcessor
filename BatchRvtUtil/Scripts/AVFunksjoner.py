@@ -7,7 +7,29 @@ import re
 """ Nødvendig for kjøring i pycharm """
 # noinspection PyUnresolvedReferences
 def clr_batchrvtutil():
-    clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\bin\x64\Release\BatchRvtUtil.dll")
+    if 'PYCHARM_HOSTED' in os.environ:
+        # clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\bin\x64\Release\BatchRvtUtil.dll")
+        clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\BatchRvtUtil.dll")
+        print ("Script is running in PyCharm")
+    else:
+        print("Script is not running in PyCharm")
+
+
+CSWROWS = ["RVT File Path", "Project Name", "PSet File Path", "Mapping File Path", "IFC Folder Path"]
+
+op = os.path.join
+main_volo_volder = r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ExporterAV3656\TESTFOLDER"
+input_rvt_folder = op(main_volo_volder, r"Input_models\524 Myrane IS")
+output_ifc_folder = op(main_volo_volder, "Output AG")
+mappings_folder = op(main_volo_volder, "FamilymappingFile")
+config_pset_folder = op(main_volo_volder, "Input_configs")
+main_config_folder = r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ExporterAV3656"
+
+# file paths to various configuration files
+rvt_file_list_path = op(main_config_folder, "rvt_file_list.txt")
+psets_paths_path = op(main_config_folder, "pSets_Paths.txt")
+mapping_paths_path = op(main_config_folder, "mapping_paths.txt")
+generated_paths_and_settings_path = op(main_config_folder, "generated_paths_and_settings.csv")
 
 
 def get_installed_revit_paths():

@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-
+import BatchRvtUtil
 import clr
 import System
 
@@ -102,6 +102,7 @@ class BatchRvtConfig:
         return
 
     def ReadRevitFileListData(self, output):
+        output("Reading Revit File list data...")
         revitFileListData = None
         if self.RevitProcessingOption == BatchRvt.RevitProcessingOption.BatchRevitFileProcessing:
             if self.RevitFileList is not None:
