@@ -3,11 +3,17 @@
 import os
 import clr
 import re
+from System import Environment
+import shutil
 
 """ Nødvendig for kjøring i pycharm """
+
+def runnin_in_pycharm():
+    return 'PYCHARM_HOSTED' in os.environ
+
 # noinspection PyUnresolvedReferences
 def clr_batchrvtutil():
-    if 'PYCHARM_HOSTED' in os.environ:
+    if runnin_in_pycharm():
         # clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\bin\x64\Release\BatchRvtUtil.dll")
         clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\BatchRvtUtil.dll")
         print ("Script is running in PyCharm")
@@ -30,6 +36,9 @@ rvt_file_list_path = op(main_config_folder, "rvt_file_list.txt")
 psets_paths_path = op(main_config_folder, "pSets_Paths.txt")
 mapping_paths_path = op(main_config_folder, "mapping_paths.txt")
 generated_paths_and_settings_path = op(main_config_folder, "generated_paths_and_settings.csv")
+
+""" Midlertidig bane for deaktivering av addins """
+addin_deactivate_foldername = "AVDeaktivert"
 
 
 def get_installed_revit_paths():
@@ -57,10 +66,11 @@ def get_highest_revit_version_path(paths):
 
 
 def clr_highest_revitapi():
-    paths = get_installed_revit_paths()
-    revitpath = get_highest_revit_version_path(paths)
-    revitapi_path = os.path.join(revitpath, 'revitapi.dll')
-    clr.AddReferenceToFileAndPath(revitapi_path)
+    if runnin_in_pycharm():
+        paths = get_installed_revit_paths()
+        revitpath = get_highest_revit_version_path(paths)
+        revitapi_path = os.path.join(revitpath, 'revitapi.dll')
+        clr.AddReferenceToFileAndPath(revitapi_path)
 
 
 def get_revit_file_version(path):
@@ -70,16 +80,63 @@ def get_revit_file_version(path):
     fileinfo = DB.BasicFileInfo.Extract(path)
     return str(fileinfo.Format)
 
-# def find_newest_revit():
-#     current_year = datetime.datetime.now().year
-#     search_years = list(range(current_year, current_year + 3))
-#     search_years.reverse()
-#
-#     for year in search_years:
-#         revit_path = "C:\\Program Files\\Autodesk\\Revit {0}".format(year)
-#         if os.path.exists(revit_path):
-#             Output("Found Revit {0} at {1}".format(year, revit_path))
-#             return revit_path
-#             break
-#     else:
-#         print("No installed version of Revit found.")
+
+def deactivate_all_addins(deactivatefoldername=None, Output=None):
+    """ Deactivate all addins in Revit. """
+    if Output is not None:
+        Output("Deaktiverer alle addins...")
+
+    if deactivatefoldername is None:
+        deactivatefoldername = addin_deactivate_foldername
+
+    clr_batchrvtutil()
+    import BatchRvtUtil
+    allrevitversions = BatchRvtUtil.RevitVersion.GetInstalledRevitVersions()
+    print allrevitversions
+    folderpaths = []
+    for version in allrevitversions:
+        for addinsfolder in [Environment.SpecialFolder.CommonApplicationData, Environment.SpecialFolder.ApplicationData]:
+            folderpath = BatchRvtUtil.RevitVersion.GetRevitAddinsFolderPath(version, addinsfolder)
+            folderpaths.append(folderpath)
+
+            addin_files = [f for f in os.listdir(folderpath) if f.endswith('.addin')]
+            subfolderpath = os.path.join(folderpath, deactivatefoldername)
+
+            if addin_files:
+                if not os.path.exists(subfolderpath):
+                    os.makedirs(subfolderpath)
+                for addin_file in addin_files:
+                    if addin_file.startswith("AVToolsRevit") or addin_file.startswith("BatchRvtAddin"):
+                        continue
+                    addin_file_path = os.path.join(folderpath, addin_file)
+                    shutil.move(addin_file_path, subfolderpath)
+
+    return folderpaths
+
+
+def reactivate_all_addins(deactivatefoldername=None, Output=None):
+    """ Reactivate all addins in Revit. """
+    if Output is not None:
+        Output("Reactivering av addins...")
+
+    if deactivatefoldername is None:
+        deactivatefoldername = addin_deactivate_foldername
+
+    clr_batchrvtutil()
+    import BatchRvtUtil
+    allrevitversions = BatchRvtUtil.RevitVersion.GetInstalledRevitVersions()
+
+    for version in allrevitversions:
+        for addinsfolder in [Environment.SpecialFolder.CommonApplicationData, Environment.SpecialFolder.ApplicationData]:
+            folderpath = BatchRvtUtil.RevitVersion.GetRevitAddinsFolderPath(version, addinsfolder)
+            subfolderpath = os.path.join(folderpath, deactivatefoldername)
+
+            if os.path.exists(subfolderpath):
+                addin_files = [f for f in os.listdir(subfolderpath) if f.endswith('.addin')]
+                for addin_file in addin_files:
+                    addin_file_path = os.path.join(subfolderpath, addin_file)
+                    shutil.move(addin_file_path, folderpath)
+
+                os.rmdir(subfolderpath)
+
+    return True

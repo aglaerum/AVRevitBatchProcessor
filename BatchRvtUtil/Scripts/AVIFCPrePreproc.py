@@ -69,6 +69,10 @@ def create_csv_file(rvt_file_list, pset_file_list, mapping_file_list, output_fil
                 # Output(str(rows))
                 writer.writerow(rows)
 
+
+""" Deaktiver alle addins som ikke er batchprocessor eller AVTools """
+avf.deactivate_all_addins()
+
 """ Create a file with all the paths to the rvt files in the folder and subfolders. """
 Output("Lager filbanefil...")
 create_file_paths_file(avf.input_rvt_folder, op(avf.main_config_folder, "rvt_file_list.txt"), ".rvt")
