@@ -9,23 +9,27 @@ import shutil
 """ Nødvendig for kjøring i pycharm """
 
 def runnin_in_pycharm():
-    return 'PYCHARM_HOSTED' in os.environ
+    if 'PYCHARM_HOSTED' in os.environ:
+        print ("Script is running in PyCharm")
+        return True
+    else:
+        print("Script is not running in PyCharm")
+        return False
+
 
 # noinspection PyUnresolvedReferences
 def clr_batchrvtutil():
     if runnin_in_pycharm():
         # clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\bin\x64\Release\BatchRvtUtil.dll")
         clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\BatchRvtUtil.dll")
-        print ("Script is running in PyCharm")
-    else:
-        print("Script is not running in PyCharm")
+        print "BatchRvtUtil assembly reference added."
 
 
 CSWROWS = ["RVT File Path", "Project Name", "PSet File Path", "Mapping File Path", "IFC Folder Path"]
 
 op = os.path.join
 main_volo_volder = r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\RevitBatchProsessor\ExporterAV3656\TESTFOLDER"
-input_rvt_folder = op(main_volo_volder, r"Input_models\524 Myrane IS")
+input_rvt_folder = op(main_volo_volder, r"Input_models")
 output_ifc_folder = op(main_volo_volder, "Output AG")
 mappings_folder = op(main_volo_volder, "FamilymappingFile")
 config_pset_folder = op(main_volo_volder, "Input_configs")
@@ -109,8 +113,10 @@ def deactivate_all_addins(deactivatefoldername=None, Output=None):
                     if addin_file.startswith("AVToolsRevit") or addin_file.startswith("BatchRvtAddin"):
                         continue
                     addin_file_path = os.path.join(folderpath, addin_file)
-                    shutil.move(addin_file_path, subfolderpath)
-
+                    target_file_path = os.path.join(subfolderpath, addin_file)
+                    shutil.copy2(addin_file_path, target_file_path)
+                    if os.path.exists(addin_file_path) and os.path.exists(target_file_path):
+                        os.remove(addin_file_path)
     return folderpaths
 
 

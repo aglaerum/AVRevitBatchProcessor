@@ -25,7 +25,6 @@ def samle_3dViews(doc):
     # type: (DB.Document) -> list[DB.View3D]
     Output("Samler 3D View!")
     views3d = DB.FilteredElementCollector(doc).OfClass(DB.View3D).ToElements()
-
     views = list(filter(lambda x: not x.IsTemplate and "ifc" in str(x.Name).lower(), views3d))
     for v in views:
         Output(v.Name)
@@ -35,7 +34,7 @@ def samle_3dViews(doc):
     return views
 
 
-def export_view(view, outfolder, psets_file):
+def export_view(view, outfolder, psets_file, mappingfile):
     Output("Eksporterer: {} - {}".format(type(view).__name__, view.Name))
 
     extra_elems, elements_exclude = Setup_Export(view.Document)
@@ -47,7 +46,7 @@ def export_view(view, outfolder, psets_file):
     ifcfilnavn = get_safe_viewname(view)
 
     """ Hent AV Standardoptions """
-    Avoptions = get_AVIFCExportOptions(view, psets_file)
+    Avoptions = get_AVIFCExportOptions(view, psets_file, mappingfile)
 
     """ Endre view objekter før eksport"""
     elems_from_view = DB.FilteredElementCollector(view.Document, view.Id)
@@ -105,7 +104,7 @@ def get_safe_viewname(view=None):
         return safefilename("{}.ifc".format(viewnameifc))
 
 
-def get_AVIFCExportOptions(exportview, psetspath):
+def get_AVIFCExportOptions(exportview, psetsfile, mappingfile):
     # type: (DB.View) -> DB.IFCExportOptions
     # https://knowledge.autodesk.com/support/revit-products/learn-explore/caas/CloudHelp/cloudhelp/2017/ENU/Revit-DocumentPresent/files/GUID-E029E3AD-1639-4446-A935-C9796BC34C95-htm.html
     # https://github.com/Autodesk/revit-ifc/blob/1f1876f1b84907eeefb5d11d4b12f558e77f8693/Source/IFCExporterUIOverride/IFCExportConfiguration.cs
@@ -124,7 +123,7 @@ def get_AVIFCExportOptions(exportview, psetspath):
     options.SpaceBoundaryLevel = 1
     """ IFC type """
     options.FileVersion = DB.IFCVersion.IFC2x3CV2
-    options.FamilyMappingFile = get_exp_class_mapping_txt()
+    options.FamilyMappingFile = mappingfile
 
     # Propertysets(parametere på objekter ut). Hvilke av disse trenger vi?
     options.AddOption("ExportIFCCommonPropertySets", "True")
@@ -132,15 +131,9 @@ def get_AVIFCExportOptions(exportview, psetspath):
     options.AddOption("ExportSchedulesAsPsets", "False")
     # options.AddOption("ExportSpecificSchedules", "True")  # Kun med PSET|IFC|COMMON")
     options.AddOption("ExportSpecificSchedules", "False")  # Kun med PSET|IFC|COMMON")
-    options.AddOption("ExportUserDefinedPsets", "False")
 
-    if psetspath:
-        # psetsfile = get_psetsfile() # flyttes ut slik at den ikke dukker opp for hvert view
-        if isinstance(psetspath, str):
-            if not os.path.isfile(psetspath):
-                print "\n PSETFIL EKSISTERER IKKE!! \n"
-            options.AddOption("ExportUserDefinedPsets", "True")
-            options.AddOption("ExportUserDefinedPsetsFileName", psetspath)
+    options.AddOption("ExportUserDefinedPsets", "True")
+    options.AddOption("ExportUserDefinedPsetsFileName", psetsfile)
 
     options.AddOption("ExportUserDefinedParameterMapping", "False")
     # options.AddOption("ExportUserDefinedParameterMappingFileName", magi_ParametersMap())  # Denne ser ut til å gjøre ingenting.

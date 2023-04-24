@@ -13,6 +13,7 @@ from script_util import Output
 
 
 def get_outputfolder(full_input_path):
+    full_input_path = os.path.dirname(full_input_path)
     # get the relative input folder path
     relative_input_path = os.path.relpath(full_input_path, avf.input_rvt_folder)
     # create the output folder path by joining the output folder with the relative input folder path
@@ -27,6 +28,9 @@ def create_file_paths_file(folder_path, output_file, file_ending):
     with open(output_file, 'wb') as fi:
         for root, dirs, files in os.walk(folder_path):
             for filename in files:
+                # todo: Midlertidig ignorerer
+                if "ARK" in filename or "RIB" in filename:
+                    continue
                 if filename.endswith(file_ending):
                     file_path = os.path.join(root, filename) + '\n'
                     fi.write(file_path.encode('utf-8'))

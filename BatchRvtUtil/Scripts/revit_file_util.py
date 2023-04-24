@@ -100,13 +100,20 @@ def OpenAndActivateBatchRvtTemporaryDocument(uiApplication):
     uiDoc = uiApplication.OpenAndActivateDocument(BATCHRVT_TEMPORARY_REVIT_FILE_PATH)
     return uiDoc
 
+
+# def ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig):
+#     worksetConfig = (worksetConfig if worksetConfig is not None else WorksetConfiguration(WorksetConfigurationOption.CloseAllWorksets) if closeAllWorksets else WorksetConfiguration())
+#     return worksetConfig
+
 def ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig):
-    worksetConfig = (
-            worksetConfig if worksetConfig is not None else
-            WorksetConfiguration(WorksetConfigurationOption.CloseAllWorksets)
-            if closeAllWorksets else
-            WorksetConfiguration()
-        )
+    """ AG Endret til å stenge alle workset med link i navnet """
+
+    if closeAllWorksets:
+        return WorksetConfiguration(WorksetConfigurationOption.CloseAllWorksets)
+
+    if worksetConfig is None:
+        worksetConfig = WorksetConfiguration()
+
     return worksetConfig
 
 def ToModelPath(modelPath):
@@ -143,6 +150,14 @@ def OpenNewLocal(application, modelPath, localModelPath, closeAllWorksets=False,
     openOptions = OpenOptions()
     openOptions.DetachFromCentralOption = DetachFromCentralOption.DoNotDetach
     worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
+
+    ######################################
+    # Todo: Lagt til at den stenger alle Worksets med Link i navnet
+    worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
+    worksetConfig = CloseWorksets(modelPath, worksetConfig)
+    openOptions.SetOpenWorksetsConfiguration(worksetConfig)
+    ######################################
+
     openOptions.SetOpenWorksetsConfiguration(worksetConfig)
     WorksharingUtils.CreateNewLocal(modelPath, localModelPath)
     if audit:
@@ -155,6 +170,14 @@ def OpenAndActivateNewLocal(uiApplication, modelPath, localModelPath, closeAllWo
     openOptions = OpenOptions()
     openOptions.DetachFromCentralOption = DetachFromCentralOption.DoNotDetach
     worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
+
+    ######################################
+    # Todo: Lagt til at den stenger alle Worksets med Link i navnet
+    worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
+    worksetConfig = CloseWorksets(modelPath, worksetConfig)
+    openOptions.SetOpenWorksetsConfiguration(worksetConfig)
+    ######################################
+
     openOptions.SetOpenWorksetsConfiguration(worksetConfig)
     WorksharingUtils.CreateNewLocal(modelPath, localModelPath)
     if audit:
@@ -166,6 +189,14 @@ def OpenDetachAndPreserveWorksets(application, modelPath, closeAllWorksets=False
     openOptions = OpenOptions()
     openOptions.DetachFromCentralOption = DetachFromCentralOption.DetachAndPreserveWorksets
     worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
+
+    ######################################
+    # Todo: Lagt til at den stenger alle Worksets med Link i navnet
+    worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
+    worksetConfig = CloseWorksets(modelPath, worksetConfig)
+    openOptions.SetOpenWorksetsConfiguration(worksetConfig)
+    ######################################
+
     openOptions.SetOpenWorksetsConfiguration(worksetConfig)
     if audit:
         openOptions.Audit = True
@@ -176,6 +207,14 @@ def OpenAndActivateDetachAndPreserveWorksets(uiApplication, modelPath, closeAllW
     openOptions = OpenOptions()
     openOptions.DetachFromCentralOption = DetachFromCentralOption.DetachAndPreserveWorksets
     worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
+
+    ######################################
+    # Todo: Lagt til at den stenger alle Worksets med Link i navnet
+    worksetConfig = ParseWorksetConfigurationOption(closeAllWorksets, worksetConfig)
+    worksetConfig = CloseWorksets(modelPath, worksetConfig)
+    openOptions.SetOpenWorksetsConfiguration(worksetConfig)
+    ######################################
+
     openOptions.SetOpenWorksetsConfiguration(worksetConfig)
     if audit:
         openOptions.Audit = True
@@ -188,12 +227,17 @@ def IsRvt2021_OrNewer(application):
         return True
 
 def CloseWorksets(modelpath, worksetConfig):
-    userworksetinfos = WorksharingUtils.GetUserWorksetInfo(modelpath)  # type: list[WorksetPreview]
-    closeworksets = []
-    for wo in userworksetinfos:
-        if "link" in str(wo.Name).lower() or "*" in str(wo.Name).lower():
-            closeworksets.append(wo)
-    worksetConfig.Close(List[WorksetId]([x.Id for x in closeworksets]))
+    # userworksetinfos = WorksharingUtils.GetUserWorksetInfo(modelpath)  # type: list[WorksetPreview]
+    # closeworksets = []
+    # for wo in userworksetinfos:
+    #     print str(wo.Name)
+    #     print wo.Name.decode("utf-8")
+    #     wo_name = wo.Name.decode("utf-8")
+    #     if "link" in wo_name.lower() or "*" in wo_name.lower():
+    #         closeworksets.append(wo)
+    # worksetConfig.Close(List[WorksetId]([x.Id for x in closeworksets]))
+    # worksetConfig.Close(List[WorksetId]([x.Id for x in userworksetinfos]))
+    worksetConfig = WorksetConfiguration(WorksetConfigurationOption.CloseAllWorksets)
     return worksetConfig
 
 def OpenCloudDocument(application, cloudProjectId, cloudModelId, closeAllWorksets=False, worksetConfig=None, audit=False):
