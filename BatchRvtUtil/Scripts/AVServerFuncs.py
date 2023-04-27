@@ -172,3 +172,33 @@ class ServerPath(object):
         args = [rserver_tool, "createLocalRVT", central_path, "-s", server_name, "-d", local_rvt_path, "-o"]
         shell = subprocess.check_output(args, shell=True)
         # output(shell)
+
+    def get_ifc_psets_file(self, psets_folder):
+        my_basename = os.path.basename(self.path)
+        my_basename = os.path.splitext(my_basename)[0] # fjern .rvt
+        the_file = os.path.join(psets_folder, my_basename + ".txt")
+        if not os.path.exists(the_file):
+            the_file = os.path.join(psets_folder, "default.txt")
+        if not os.path.exists(the_file):
+            the_file = None
+        return the_file
+
+    def get_ifc_mappings_file(self, mappings_folder):
+        my_basename = os.path.basename(self.path)
+        my_basename = os.path.splitext(my_basename)[0] # fjern .rvt
+        the_file = os.path.join(mappings_folder, my_basename + ".txt")
+        if not os.path.exists(the_file):
+            the_file = os.path.join(mappings_folder, "default.txt")
+        if not os.path.exists(the_file):
+            the_file = None
+        return the_file
+
+    def get_ifc_settings_file(self, ifc_settings_folder):
+        my_basename = os.path.basename(self.path)
+        my_basename = os.path.splitext(my_basename)[0] # fjern .rvt
+        the_file = os.path.join(ifc_settings_folder, my_basename + ".json")
+        if not os.path.exists(the_file):
+            the_file = os.path.join(ifc_settings_folder, "default.json")
+        if not os.path.exists(the_file):
+            the_file = None
+        return the_file
