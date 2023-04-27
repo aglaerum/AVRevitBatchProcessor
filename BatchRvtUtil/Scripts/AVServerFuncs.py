@@ -4,36 +4,29 @@ import os
 import re
 import traceback
 
-import batch_rvt_util
-import rpws
+import AVClr
+# import AVClr
+# import batch_rvt_util
 import datetime
 import subprocess
-from Autodesk.Revit import DB
+#
+# RSERVER_MAX_NAME_LEN = 40  # max for modellnavn
+# RSERVER_MAX_FOLDER_LEN = 110  # max for mappenavn
+#
+# TEMPLATE_MAPPE = "ikke bruk"
+# revit_lokalfiler = "Revit Lokalfiler"  # mappe på egen disk
+#
+#
+# def get_outputfolder(source_path, output_ifc_folder, output):
+#     """ Get output folder for the ifc file. """
+#
+#     node_path = get_nodepath(source_path)
+#     ifc_folder = os.path.join(output_ifc_folder, node_path)
+#     ifc_folder = os.path.dirname(ifc_folder)
+#     return ifc_folder
+#
+#     # node_path = avsf.get_nodepath(source_path)  # source_path = os.path.dirname(source_path)  #  # relative_input_path = os.path.relpath(source_path, input_rvt_folder)  # output_folder_path = os.path.join(output_ifc_folder, relative_input_path)  # if not os.path.exists(output_folder_path):  #     os.makedirs(output_folder_path)  # return output_folder_path
 
-
-RSERVER_MAX_NAME_LEN = 40  # max for modellnavn
-RSERVER_MAX_FOLDER_LEN = 110  # max for mappenavn
-
-
-TEMPLATE_MAPPE = "ikke bruk"
-revit_lokalfiler = "Revit Lokalfiler"  # mappe på egen disk
-
-def get_outputfolder(source_path, output_ifc_folder, output):
-    """ Get output folder for the ifc file. """
-
-    node_path = get_nodepath(source_path)
-    ifc_folder = os.path.join(output_ifc_folder, node_path)
-    ifc_folder = os.path.dirname(ifc_folder)
-    return ifc_folder
-
-    # node_path = avsf.get_nodepath(source_path)
-    # source_path = os.path.dirname(source_path)
-    #
-    # relative_input_path = os.path.relpath(source_path, input_rvt_folder)
-    # output_folder_path = os.path.join(output_ifc_folder, relative_input_path)
-    # if not os.path.exists(output_folder_path):
-    #     os.makedirs(output_folder_path)
-    # return output_folder_path
 
 def get_revit_file_version(path):
     # type: (str) -> str
@@ -41,24 +34,29 @@ def get_revit_file_version(path):
         version = get_RserverVersion(path)
         return version
     else:
+        AVClr.clr_highest_revitapi()
+        from Autodesk.Revit import DB
         fileinfo = DB.BasicFileInfo.Extract(path)
         return str(fileinfo.Format)
 
-def get_rserverstart(unc_path):
-    server_name = get_RserverName(unc_path)
-    RSERVER_START = r"RSN://{}".format(unicode(server_name))
-    return RSERVER_START
 
+# def get_rserverstart(unc_path):
+#     server_name = get_RserverName(unc_path)
+#     RSERVER_START = r"RSN://{}".format(unicode(server_name))
+#     return RSERVER_START
+#
 
-def get_full_rsn_path(unc_path):
-    """ Get the full path to the model on the server """
-    projsubfolder = get_nodepath(unc_path)
-    rserverstart = get_rserverstart(unc_path)
-    full_path = os.path.join(rserverstart, projsubfolder)
-    assert DB.ModelPathUtils.IsValidUserVisibleFullServerPath(full_path)
-    fullpath = DB.ModelPathUtils.ConvertUserVisiblePathToModelPath(full_path)
-    user_visible = DB.ModelPathUtils.ConvertModelPathToUserVisiblePath(fullpath)
-    return unicode(user_visible)
+# def get_full_rsn_path(unc_path):
+#     """ Get the full path to the model on the server """
+#     projsubfolder = get_nodepath(unc_path)
+#     rserverstart = get_rserverstart(unc_path)
+#     full_path = os.path.join(rserverstart, projsubfolder)
+#     AVClr.clr_revitapi()
+#     from Autodesk.Revit import DB
+#     assert DB.ModelPathUtils.IsValidUserVisibleFullServerPath(full_path)
+#     fullpath = DB.ModelPathUtils.ConvertUserVisiblePathToModelPath(full_path)
+#     user_visible = DB.ModelPathUtils.ConvertModelPathToUserVisiblePath(fullpath)
+#     return unicode(user_visible)
 
 
 def get_nodepath(unc_path):
@@ -68,6 +66,7 @@ def get_nodepath(unc_path):
     projects_path = os.path.join(*components[projects_index + 1:])
     return projects_path
 
+
 def get_RserverVersion(unc_path):
     try:
         # Get the version number using regex from a string like \Revit Server 2022\
@@ -76,7 +75,6 @@ def get_RserverVersion(unc_path):
     except Exception as e:
         traceback.print_exc()
         return None
-
 
 def get_RserverName(unc_path):
     path_split = os.path.splitunc(unc_path)
@@ -99,6 +97,7 @@ class ServerPath(object):
 
     def get_rserver(self):
         if self._rserver is None:
+            import rpws
             self._rserver = rpws.RevitServer(self.servername, self.serverversion)
             assert self._rserver.version == self.serverversion
         return self._rserver
@@ -115,23 +114,29 @@ class ServerPath(object):
             self._serverversion = get_RserverVersion(self.path)
         return self._serverversion
 
-    @property
-    def serverstart(self):
-        if self._serverstart is None:
-            self._serverstart = get_rserverstart(self.path)
-        return self._serverstart
+    # @property
+    # def serverstart(self):
+    #     if self._serverstart is None:
+    #         self._serverstart = get_rserverstart(self.path)
+    #     return self._serverstart
 
-    @property
-    def rsn_path(self):
-        if self._rsn_path is None:
-            self._rsn_path = get_full_rsn_path(self.path)
-        return self._rsn_path
+    # @property
+    # def rsn_path(self):
+    #     if self._rsn_path is None:
+    #         self._rsn_path = get_full_rsn_path(self.path)
+    #     return self._rsn_path
 
     @property
     def server_node_path(self):
         if self._server_node_path is None:
             self._server_node_path = get_nodepath(self.path)
         return self._server_node_path
+
+    def get_ifc_outfolder(self, local_ifc_folder):
+        server_node_path = self.server_node_path
+        local_path = os.path.join(local_ifc_folder, server_node_path)
+        local_path = os.path.dirname(local_path)
+        return local_path
 
     def get_last_modified(self):
         server = self.get_rserver()
@@ -145,6 +150,8 @@ class ServerPath(object):
         return int(hours)
 
     def get_rservertool(self):
+        AVClr.clr_batchrvtutil()
+        import batch_rvt_util
         tail_path = "RevitServerToolCommand\RevitServerTool.exe"
         supported_version = batch_rvt_util.RevitVersion.GetSupportedRevitVersion(self.serverversion)
         revit_installation = batch_rvt_util.RevitVersion.GetRevitExecutableFolderPath(supported_version)
@@ -170,12 +177,11 @@ class ServerPath(object):
         rserver_tool = self.get_rservertool()
         output("Laster ned:\n{}\ntil:\n{}".format(self.path, local_rvt_path))
         args = [rserver_tool, "createLocalRVT", central_path, "-s", server_name, "-d", local_rvt_path, "-o"]
-        shell = subprocess.check_output(args, shell=True)
-        # output(shell)
+        shell = subprocess.check_output(args, shell=True)  # output(shell)
 
     def get_ifc_psets_file(self, psets_folder):
         my_basename = os.path.basename(self.path)
-        my_basename = os.path.splitext(my_basename)[0] # fjern .rvt
+        my_basename = os.path.splitext(my_basename)[0]  # fjern .rvt
         the_file = os.path.join(psets_folder, my_basename + ".txt")
         if not os.path.exists(the_file):
             the_file = os.path.join(psets_folder, "default.txt")
@@ -185,7 +191,7 @@ class ServerPath(object):
 
     def get_ifc_mappings_file(self, mappings_folder):
         my_basename = os.path.basename(self.path)
-        my_basename = os.path.splitext(my_basename)[0] # fjern .rvt
+        my_basename = os.path.splitext(my_basename)[0]  # fjern .rvt
         the_file = os.path.join(mappings_folder, my_basename + ".txt")
         if not os.path.exists(the_file):
             the_file = os.path.join(mappings_folder, "default.txt")
@@ -195,7 +201,7 @@ class ServerPath(object):
 
     def get_ifc_settings_file(self, ifc_settings_folder):
         my_basename = os.path.basename(self.path)
-        my_basename = os.path.splitext(my_basename)[0] # fjern .rvt
+        my_basename = os.path.splitext(my_basename)[0]  # fjern .rvt
         the_file = os.path.join(ifc_settings_folder, my_basename + ".json")
         if not os.path.exists(the_file):
             the_file = os.path.join(ifc_settings_folder, "default.json")
