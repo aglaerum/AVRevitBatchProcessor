@@ -5,27 +5,8 @@ import re
 import traceback
 
 import AVClr
-# import AVClr
-# import batch_rvt_util
 import datetime
 import subprocess
-#
-# RSERVER_MAX_NAME_LEN = 40  # max for modellnavn
-# RSERVER_MAX_FOLDER_LEN = 110  # max for mappenavn
-#
-# TEMPLATE_MAPPE = "ikke bruk"
-# revit_lokalfiler = "Revit Lokalfiler"  # mappe på egen disk
-#
-#
-# def get_outputfolder(source_path, output_ifc_folder, output):
-#     """ Get output folder for the ifc file. """
-#
-#     node_path = get_nodepath(source_path)
-#     ifc_folder = os.path.join(output_ifc_folder, node_path)
-#     ifc_folder = os.path.dirname(ifc_folder)
-#     return ifc_folder
-#
-#     # node_path = avsf.get_nodepath(source_path)  # source_path = os.path.dirname(source_path)  #  # relative_input_path = os.path.relpath(source_path, input_rvt_folder)  # output_folder_path = os.path.join(output_ifc_folder, relative_input_path)  # if not os.path.exists(output_folder_path):  #     os.makedirs(output_folder_path)  # return output_folder_path
 
 
 def get_revit_file_version(path):
@@ -39,32 +20,12 @@ def get_revit_file_version(path):
         fileinfo = DB.BasicFileInfo.Extract(path)
         return str(fileinfo.Format)
 
-
-# def get_rserverstart(unc_path):
-#     server_name = get_RserverName(unc_path)
-#     RSERVER_START = r"RSN://{}".format(unicode(server_name))
-#     return RSERVER_START
-#
-
-# def get_full_rsn_path(unc_path):
-#     """ Get the full path to the model on the server """
-#     projsubfolder = get_nodepath(unc_path)
-#     rserverstart = get_rserverstart(unc_path)
-#     full_path = os.path.join(rserverstart, projsubfolder)
-#     AVClr.clr_revitapi()
-#     from Autodesk.Revit import DB
-#     assert DB.ModelPathUtils.IsValidUserVisibleFullServerPath(full_path)
-#     fullpath = DB.ModelPathUtils.ConvertUserVisiblePathToModelPath(full_path)
-#     user_visible = DB.ModelPathUtils.ConvertModelPathToUserVisiblePath(fullpath)
-#     return unicode(user_visible)
-
-
 def get_nodepath(unc_path):
     """ Get the subfolder name for the projects folder """
     components = unc_path.split(os.sep)
     projects_index = components.index('Projects')
     projects_path = os.path.join(*components[projects_index + 1:])
-    return projects_path
+    return projects_path.strip()
 
 
 def get_RserverVersion(unc_path):
@@ -87,7 +48,7 @@ def get_RserverName(unc_path):
 class ServerPath(object):
     def __init__(self, path):
         super(ServerPath, self).__init__()
-        self.path = os.path.normpath(unicode(path).strip())
+        self.path = os.path.normpath(path).strip()
         self._servername = None
         self._serverversion = None
         self._serverstart = None
@@ -114,18 +75,6 @@ class ServerPath(object):
             self._serverversion = get_RserverVersion(self.path)
         return self._serverversion
 
-    # @property
-    # def serverstart(self):
-    #     if self._serverstart is None:
-    #         self._serverstart = get_rserverstart(self.path)
-    #     return self._serverstart
-
-    # @property
-    # def rsn_path(self):
-    #     if self._rsn_path is None:
-    #         self._rsn_path = get_full_rsn_path(self.path)
-    #     return self._rsn_path
-
     @property
     def server_node_path(self):
         if self._server_node_path is None:
@@ -136,7 +85,7 @@ class ServerPath(object):
         server_node_path = self.server_node_path
         local_path = os.path.join(local_ifc_folder, server_node_path)
         local_path = os.path.dirname(local_path)
-        return local_path
+        return local_path.strip()
 
     def get_last_modified(self):
         server = self.get_rserver()
@@ -162,7 +111,7 @@ class ServerPath(object):
     def get_local_path(self, local_rvt_folder):
         server_node_path = self.server_node_path
         local_path = os.path.join(local_rvt_folder, server_node_path)
-        return local_path
+        return local_path.strip()
 
     def create_local(self, local_folder, output):
         # type: (ServerPath, function) -> str
@@ -185,9 +134,8 @@ class ServerPath(object):
         the_file = os.path.join(psets_folder, my_basename + ".txt")
         if not os.path.exists(the_file):
             the_file = os.path.join(psets_folder, "default.txt")
-        if not os.path.exists(the_file):
-            the_file = None
-        return the_file
+        assert os.path.exists(the_file)
+        return the_file.strip()
 
     def get_ifc_mappings_file(self, mappings_folder):
         my_basename = os.path.basename(self.path)
@@ -195,9 +143,8 @@ class ServerPath(object):
         the_file = os.path.join(mappings_folder, my_basename + ".txt")
         if not os.path.exists(the_file):
             the_file = os.path.join(mappings_folder, "default.txt")
-        if not os.path.exists(the_file):
-            the_file = None
-        return the_file
+        assert os.path.exists(the_file)
+        return the_file.strip()
 
     def get_ifc_settings_file(self, ifc_settings_folder):
         my_basename = os.path.basename(self.path)
@@ -205,6 +152,5 @@ class ServerPath(object):
         the_file = os.path.join(ifc_settings_folder, my_basename + ".json")
         if not os.path.exists(the_file):
             the_file = os.path.join(ifc_settings_folder, "default.json")
-        if not os.path.exists(the_file):
-            the_file = None
-        return the_file
+        assert os.path.exists(the_file)
+        return the_file.strip()
