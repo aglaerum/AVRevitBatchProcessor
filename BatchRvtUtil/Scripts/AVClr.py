@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import System
+from System import AppDomain
 import clr
 import os
 
@@ -13,20 +13,8 @@ def runnin_in_pycharm():
 
 def clr_batchrvtutil():
     if runnin_in_pycharm():
-        # clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\bin\x64\Release\BatchRvtUtil.dll")
         clr.AddReferenceToFileAndPath(r"C:\Users\andreas.glarum\OneDrive - Asplan Viak\Documents\GitHub\AVRevitBatchProcessor\BatchRvtUtil\BatchRvtUtil.dll")
-        # print "BatchRvtUtil assembly reference added."
-        # System.AppDomain.Unload(System.AppDomain.CurrentDomain)
 
-
-# def get_installed_revit_paths():
-#     installed_versions = BatchRvtUtil.RevitVersion.GetInstalledRevitVersions()
-#     paths = []
-#     for version in installed_versions:
-#         path = BatchRvtUtil.RevitVersion.GetRevitExecutableFolderPath(version)
-#         paths.append(path)
-#     return paths
-#
 def get_highest_revit_version_path():
     clr_batchrvtutil()
     import BatchRvtUtil
@@ -37,24 +25,36 @@ def get_highest_revit_version_path():
     # print("Highest Revit version found: " + revit_folder)
     return revit_folder
 
-def clr_revitapi():
-    if runnin_in_pycharm():
+def clr_revitapi(force=False):
+    if runnin_in_pycharm() or force:
         # print("Adding reference to revitapi...")
         clr.AddReference("RevitAPI")
 
-def clr_highest_revitapi():
-    if runnin_in_pycharm():
+def clr_highest_revitapi(force=False):
+    if runnin_in_pycharm() or force:
         revitpath = get_highest_revit_version_path()
         revitapi_path = os.path.join(revitpath, 'revitapi.dll')
-        # print("Adding reference to highest revitapi.dll: " + revitapi_path)
         clr.AddReferenceToFileAndPath(revitapi_path)
-#
-# def clr_spesific_revitapi(version):
-#     version = str(version)
-#     if runnin_in_pycharm():
-#         return
-#         version = BatchRvtUtil.RevitVersion.GetSupportedRevitVersion(version)
-#         revitpath = BatchRvtUtil.RevitVersion.GetRevitExecutableFolderPath(version)
-#         revitapi_path = os.path.join(revitpath, 'revitapi.dll')
-#         print("Adding reference to spesific revitapi.dll: " + revitapi_path)
-#         clr.AddReferenceToFileAndPath(revitapi_path)
+
+def clr_from_currentdomain(theassname):
+    toclr = None
+    listen = sorted(list(AppDomain.CurrentDomain.GetAssemblies()))
+    for assembly in listen:
+        assname = str(assembly.FullName)
+        if theassname in assname:
+            toclr = assname
+    if toclr is not None:
+        clr.AddReference(toclr)
+        return toclr
+    if toclr is None:
+        return None
+
+def clr_IFCExportUIOverride():
+    result = clr_from_currentdomain("IFCExportUIOverride")
+    if result is None:
+        result = clr_from_currentdomain("IFCExporterUIOverride")
+    assert result is not None
+
+def clr_from_ifcaddin(version, assemblyname):
+    path = r"C:\ProgramData\Autodesk\ApplicationPlugins\IFC {}.bundle\Contents\{}".format(str(version), str(version))
+    clr.AddReferenceToFileAndPath(os.path.join(path, assemblyname))

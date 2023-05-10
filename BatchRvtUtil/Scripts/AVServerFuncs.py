@@ -7,6 +7,7 @@ import traceback
 import AVClr
 import datetime
 import subprocess
+import sys
 
 
 def get_revit_file_version(path):
@@ -15,7 +16,7 @@ def get_revit_file_version(path):
         version = get_RserverVersion(path)
         return version
     else:
-        AVClr.clr_highest_revitapi()
+        AVClr.clr_highest_revitapi(force=True)
         from Autodesk.Revit import DB
         fileinfo = DB.BasicFileInfo.Extract(path)
         return str(fileinfo.Format)
@@ -56,12 +57,12 @@ class ServerPath(object):
         self._server_node_path = None
         self._rserver = None
 
-    def get_rserver(self):
-        if self._rserver is None:
-            import rpws
-            self._rserver = rpws.RevitServer(self.servername, self.serverversion)
-            assert self._rserver.version == self.serverversion
-        return self._rserver
+    # def get_rserver(self):
+    #     import rpws
+    #     if self._rserver is None:
+    #         self._rserver = rpws.RevitServer(self.servername, self.serverversion)
+    #         assert self._rserver.version == self.serverversion
+    #     return self._rserver
 
     @property
     def servername(self):
@@ -88,6 +89,7 @@ class ServerPath(object):
         return local_path.strip()
 
     def get_last_modified(self):
+
         server = self.get_rserver()
         modified = server.getmodelinfo(self.server_node_path)  # type: rpws.server.models.ModelInfoEx
         modified = modified.date_modified
@@ -114,7 +116,7 @@ class ServerPath(object):
         return local_path.strip()
 
     def create_local(self, local_folder, output):
-        # type: (ServerPath, function) -> str
+        # type: (ServerPath, function) -> None
         central_path = self.server_node_path
         server_name = self.servername
         local_rvt_path = self.get_local_path(local_folder)
