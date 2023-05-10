@@ -5,9 +5,7 @@ import re
 import traceback
 
 import AVClr
-import datetime
-import subprocess
-import sys
+import subprocess as SU
 
 
 def get_revit_file_version(path):
@@ -82,23 +80,23 @@ class ServerPath(object):
             self._server_node_path = get_nodepath(self.path)
         return self._server_node_path
 
-    def get_ifc_outfolder(self, local_ifc_folder):
+    def get_ifc_out_folder(self, local_ifc_folder):
         server_node_path = self.server_node_path
         local_path = os.path.join(local_ifc_folder, server_node_path)
         local_path = os.path.dirname(local_path)
         return local_path.strip()
 
-    def get_last_modified(self):
+    # def get_last_modified(self):
+    #
+    #     server = self.get_rserver()
+    #     modified = server.getmodelinfo(self.server_node_path)  # type: rpws.server.models.ModelInfoEx
+    #     modified = modified.date_modified
+    #     return modified
 
-        server = self.get_rserver()
-        modified = server.getmodelinfo(self.server_node_path)  # type: rpws.server.models.ModelInfoEx
-        modified = modified.date_modified
-        return modified
-
-    def get_hours_since_modified(self):
-        modified = self.get_last_modified()
-        hours = (datetime.datetime.now() - modified).total_seconds() / 3600
-        return int(hours)
+    # def get_hours_since_modified(self):
+    #     modified = self.get_last_modified()
+    #     hours = (datetime.datetime.now() - modified).total_seconds() / 3600
+    #     return int(hours)
 
     def get_rservertool(self):
         AVClr.clr_batchrvtutil()
@@ -128,7 +126,13 @@ class ServerPath(object):
         rserver_tool = self.get_rservertool()
         output("Laster ned:\n{}\ntil:\n{}".format(self.path, local_rvt_path))
         args = [rserver_tool, "createLocalRVT", central_path, "-s", server_name, "-d", local_rvt_path, "-o"]
-        shell = subprocess.check_output(args, shell=True)  # output(shell)
+        # shell = subprocess.check_output(args, shell=True)  # output(shell)
+        process = SU.Popen(args, creationflags=SU.CREATE_NEW_CONSOLE)
+        process.wait()
+
+        if process.returncode != 0:
+            # Output(process.)
+            raise Exception("Feilmelding ved kjøring av Downloader exe:\n{}".format(rserver_tool))
 
     def get_ifc_psets_file(self, psets_folder):
         my_basename = os.path.basename(self.path)
