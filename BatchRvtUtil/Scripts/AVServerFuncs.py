@@ -6,6 +6,7 @@ import traceback
 
 import AVClr
 import subprocess as SU
+import time
 
 
 def get_revit_file_version(path):
@@ -45,9 +46,12 @@ def get_RserverName(unc_path):
 
 
 class ServerPath(object):
-    def __init__(self, path):
+    def __init__(self, path, local_rvt_folder):
         super(ServerPath, self).__init__()
         self.path = os.path.normpath(path).strip()
+        self.local_rvt_folder = local_rvt_folder
+
+        self._local_path = None
         self._servername = None
         self._serverversion = None
         self._serverstart = None
@@ -55,12 +59,10 @@ class ServerPath(object):
         self._server_node_path = None
         self._rserver = None
 
-    # def get_rserver(self):
-    #     import rpws
-    #     if self._rserver is None:
-    #         self._rserver = rpws.RevitServer(self.servername, self.serverversion)
-    #         assert self._rserver.version == self.serverversion
-    #     return self._rserver
+
+    @property
+    def local_exists(self):
+        return os.path.exists(self.local_path)
 
     @property
     def servername(self):
@@ -80,23 +82,25 @@ class ServerPath(object):
             self._server_node_path = get_nodepath(self.path)
         return self._server_node_path
 
+    @property
+    def local_path(self):
+        server_node_path = self.server_node_path
+        local_path = os.path.join(self.local_rvt_folder, server_node_path)
+        return local_path.strip()
+
+    def skal_ignoreres(self, ignore_list):
+        # type: (list[str]) -> bool
+        for ignore in ignore_list:
+            if ignore.lower() in self.path.lower():
+                return True
+        return False
+
+
     def get_ifc_out_folder(self, local_ifc_folder):
         server_node_path = self.server_node_path
         local_path = os.path.join(local_ifc_folder, server_node_path)
         local_path = os.path.dirname(local_path)
         return local_path.strip()
-
-    # def get_last_modified(self):
-    #
-    #     server = self.get_rserver()
-    #     modified = server.getmodelinfo(self.server_node_path)  # type: rpws.server.models.ModelInfoEx
-    #     modified = modified.date_modified
-    #     return modified
-
-    # def get_hours_since_modified(self):
-    #     modified = self.get_last_modified()
-    #     hours = (datetime.datetime.now() - modified).total_seconds() / 3600
-    #     return int(hours)
 
     def get_rservertool(self):
         AVClr.clr_batchrvtutil()
@@ -108,31 +112,44 @@ class ServerPath(object):
         assert os.path.exists(rservertool_path)
         return rservertool_path
 
-    def get_local_path(self, local_rvt_folder):
-        server_node_path = self.server_node_path
-        local_path = os.path.join(local_rvt_folder, server_node_path)
-        return local_path.strip()
+    # def get_local_path(self, local_rvt_folder):
+    #     server_node_path = self.server_node_path
+    #     local_path = os.path.join(local_rvt_folder, server_node_path)
+    #     return local_path.strip()
 
-    def create_local(self, local_folder, output):
+    def create_local(self, output):
         # type: (ServerPath, function) -> None
+        output("--------- Lager lokal kopi av {} ---------".format(self.path))
         central_path = self.server_node_path
         server_name = self.servername
-        local_rvt_path = self.get_local_path(local_folder)
+        local_rvt_path = self.local_path
 
         dest_folder = os.path.dirname(local_rvt_path)
         if not os.path.exists(dest_folder):
             os.makedirs(dest_folder)
 
         rserver_tool = self.get_rservertool()
-        output("Laster ned:\n{}\ntil:\n{}".format(self.path, local_rvt_path))
+        # output("Laster ned:\n{}\ntil:\n{}".format(self.path, local_rvt_path))
         args = [rserver_tool, "createLocalRVT", central_path, "-s", server_name, "-d", local_rvt_path, "-o"]
-        # shell = subprocess.check_output(args, shell=True)  # output(shell)
+        # output(args)
+
+        start_time = time.time()
         process = SU.Popen(args, creationflags=SU.CREATE_NEW_CONSOLE)
         process.wait()
 
+        elapsed_minutes = str((time.time() - start_time) / 60)
+        output("Nedlasting tok {} minutter".format(elapsed_minutes))
+
         if process.returncode != 0:
-            # Output(process.)
-            raise Exception("Feilmelding ved kjøring av Downloader exe:\n{}".format(rserver_tool))
+            output("Feilmelding ved kjøring av Downloader exe:\n{}\n{}".format(rserver_tool, str(process.returncode)))
+        else:
+            if not self.local_exists:
+                output("######################### Nedlaster melder suksess men lokalfilen eksisterer ikke #########################")
+            else:
+                output("--------- Lokal kopi lagret -----------")
+
+        if not os.listdir(dest_folder):
+            os.rmdir(dest_folder)
 
     def get_ifc_psets_file(self, psets_folder):
         my_basename = os.path.basename(self.path)
