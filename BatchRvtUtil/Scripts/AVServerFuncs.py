@@ -99,7 +99,7 @@ class ServerPath(object):
     def get_ifc_out_folder(self, local_ifc_folder):
         server_node_path = self.server_node_path
         local_path = os.path.join(local_ifc_folder, server_node_path)
-        local_path = os.path.dirname(local_path)
+        # local_path = os.path.dirname(local_path)  # Hvorfor hadde jeg denne? Fjernet for at IFC filer skal få egen mappe me fagmodell
         return local_path.strip()
 
     def get_rservertool(self):
