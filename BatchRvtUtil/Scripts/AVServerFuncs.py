@@ -11,9 +11,7 @@ import time
 
 def get_revit_file_version(path):
     # type: (str) -> str
-    
-    if not os.path.exists(path):
-        return str("0000")
+
     if path.startswith(r"\\"):
         version = get_RserverVersion(path)
         return version
