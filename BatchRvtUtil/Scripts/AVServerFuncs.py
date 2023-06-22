@@ -131,7 +131,7 @@ class ServerPath(object):
 
         rserver_tool = self.get_rservertool()
         # output("Laster ned:\n{}\ntil:\n{}".format(self.path, local_rvt_path))
-        args = [rserver_tool, "createLocalRVT", central_path, "-s", server_name, "-d", local_rvt_path, "-o"]
+        args = [rserver_tool, "createLocalRVT", central_path, "-s", server_name, "-a", server_name, "-d", local_rvt_path, "-o"]
         # output(args)
 
         start_time = time.time()
