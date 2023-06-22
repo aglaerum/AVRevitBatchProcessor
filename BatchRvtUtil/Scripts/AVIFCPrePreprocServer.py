@@ -193,8 +193,6 @@ MAX_MODELL_AGE = exporter_settings.max_modell_age
 MAX_CSV_AGE = exporter_settings.max_csv_age
 VERSIONS = exporter_settings.versions
 
-Output(str(VERSIONS))
-
 """ Deaktiver alle addins som ikke er batchprocessor eller AVTools """
 avf.deactivate_all_addins(deactivatefoldername=avps.addin_deactivate_foldername,output=Output)
 
