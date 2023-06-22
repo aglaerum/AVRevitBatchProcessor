@@ -162,6 +162,7 @@ class AVAutoExporterSettingsServer(AVAutoExporterSettings):
         self.max_modell_age = None
         self.max_csv_age = None
         self.ignore_rvt_files_with_strings = None
+        self.versions = None
 
         """ Private vars er default settings """
         self._force_refresh_csv_server_paths = False
@@ -171,6 +172,7 @@ class AVAutoExporterSettingsServer(AVAutoExporterSettings):
         self._max_csv_age = 8
         self._ignore_rvt_files_with_strings = ["_IFC_", "test ", "Oppstartsmodell", "_backup", "_ARKIV", "000000-00", "123456"]
         self._skip_download = False
+        self._versions = []
 
         self.load_server_settings()
 
@@ -184,6 +186,7 @@ class AVAutoExporterSettingsServer(AVAutoExporterSettings):
         output("Max csv age (Lag ny Crawler CSV hvis den er over x antall timer): " + str(self.max_csv_age))
         output("Ignore rvt files with strings (Hopp over filbaner som har en eller flere av disse i navnet): " + str(self.ignore_rvt_files_with_strings))
         output("Skip download (Hopp over nedlasting av rvt filer) er satt til: " + str(self.skip_download))
+        output("Henter fra Serverversioner(Tom liste betyr hent alle innstallerte versioner): " + str(self.versions))
         output()
 
     def load_server_settings(self):
@@ -198,6 +201,9 @@ class AVAutoExporterSettingsServer(AVAutoExporterSettings):
             self.max_csv_age = settings.setdefault("max_csv_age", self._max_csv_age)
             self.ignore_rvt_files_with_strings = settings.setdefault("ignore_rvt_files_with_strings", self._ignore_rvt_files_with_strings)
             self.skip_download = settings.setdefault("skip_download", self._skip_download)
+            self.versions = settings.setdefault("versions", self._versions)
+
+
         with codecs.open(self.av_autoexporter_settings_path, "w", encoding="utf-8") as f:
             json.dump(settings, f, indent=4, sort_keys=True)
 

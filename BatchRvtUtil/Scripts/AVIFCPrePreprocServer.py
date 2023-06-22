@@ -37,7 +37,7 @@ crawler_exe_path = exporter_settings.crawler_path_exe  # exe som crawler hele al
 crawler_server_paths_csv = exporter_settings.crawler_server_paths_csv  # csv fil som crawler genererer
 skip_download = exporter_settings.skip_download  # True/False
 
-def run_and_get_serverpaths(exe_path, csv_path, force_refresh=False, max_csv_age=8, max_model_age=None):
+def run_and_get_serverpaths(exe_path, csv_path, force_refresh=False, max_csv_age=8, max_model_age=None, versions=None):
 
     refresh = False
 
@@ -62,8 +62,9 @@ def run_and_get_serverpaths(exe_path, csv_path, force_refresh=False, max_csv_age
         if not os.path.exists(csv_path):
             with open(csv_path, "w") as f:
                 f.write("")
-        versions = [str(x) for x in avf.get_installed_revit_versions()]
-        # versions = ["2023"]
+
+        if not versions:
+            versions = [str(x) for x in avf.get_installed_revit_versions()]
 
         args = [exe_path, "--output", csv_path, "--versions", ",".join(versions)]
 
@@ -189,12 +190,15 @@ SLETT_ALLE_LOKALFILER = exporter_settings.slett_alle_lokalfiler
 FORCE_NEW_LOCALS = exporter_settings.force_new_locals
 MAX_MODELL_AGE = exporter_settings.max_modell_age
 MAX_CSV_AGE = exporter_settings.max_csv_age
+VERSIONS = exporter_settings.versions
+
+Output(str(VERSIONS))
 
 """ Deaktiver alle addins som ikke er batchprocessor eller AVTools """
 avf.deactivate_all_addins(deactivatefoldername=avps.addin_deactivate_foldername,output=Output)
 
 """ Hent Rserverbaner (Tar Tid )"""
-server_paths, refreshed = run_and_get_serverpaths(crawler_exe_path, crawler_server_paths_csv, force_refresh=FORCE_REFRESH_CSV_SERVER_PATHS, max_csv_age=MAX_CSV_AGE, max_model_age=MAX_MODELL_AGE)  # type: list[avs.ServerPath], bool
+server_paths, refreshed = run_and_get_serverpaths(crawler_exe_path, crawler_server_paths_csv, force_refresh=FORCE_REFRESH_CSV_SERVER_PATHS, max_csv_age=MAX_CSV_AGE, max_model_age=MAX_MODELL_AGE, versions=VERSIONS)  # type: list[avs.ServerPath], bool
 
 """ Filterer baner som er definert i settings fil at skal ignoreres """
 server_paths = filter_ignore_paths(server_paths, exporter_settings, Output)
