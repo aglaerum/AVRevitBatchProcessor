@@ -64,9 +64,10 @@ def run_and_get_serverpaths(exe_path, csv_path, force_refresh=False, max_csv_age
                 f.write("")
 
         if not versions:
-            versions = [str(x) for x in avf.get_installed_revit_versions()]
+            versions = avf.get_installed_revit_versions()
 
-        args = [exe_path, "--output", csv_path, "--versions", ",".join(str(v) for v in versions)]
+        versions = [str(v) for v in versions]
+        args = [exe_path, "--output", csv_path, "--versions", ",".join(versions)]
 
         if max_model_age:
             args = [exe_path,
