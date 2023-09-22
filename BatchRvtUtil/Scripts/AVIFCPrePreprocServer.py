@@ -111,7 +111,7 @@ def download_rvt_files(s_paths, target_folder, output, del_existing=False, make_
 
     output("Laster ned RVT filer lokalt...")
     remaining = len(s_paths)
-    for pa in server_paths:
+    for pa in s_paths:
         output("Gjenstående: {} stk".format(str(remaining)))
         if not make_new and pa.local_exists:
             output("Fil eksisterer allerede lokalt, hopper over: {}".format(pa.local_path))
@@ -136,6 +136,29 @@ def append_to_error_paths_file(path, output):
             output("Bane skrevet til errorfil: {}".format(path))
     except Exception as e:
         output("Kunne ikke skrive til errorfil:\n{}".format(e.message))
+
+def get_include_paths(settings_class, output):
+    # type: (avf.AVAutoExporterSettingsServer) -> list[str]
+    if not os.path.exists(settings_class.include_paths_file):
+        output("Inkluderingsfil eksisterte ikke, oppretter: {}".format(settings_class.include_paths_file))
+        with codecs.open(settings_class.include_paths_file, "w", encoding="utf-8") as f:
+            f.write("")
+
+    with codecs.open(settings_class.include_paths_file, "r", encoding="utf-8") as f:
+        # noinspection PyTypeChecker
+        return [line.strip() for line in f.readlines()]
+
+def filter_include_paths(paths, settings_class, output):
+    # type: (list[avs.ServerPath], avf.AVAutoExporterSettingsServer, callable) -> list[avs.ServerPath]
+    include_list = [item.strip().lower() for item in get_include_paths(settings_class, output)]
+    out = []
+    for path_item in paths:
+        if any(str(b) in str(path_item).strip().lower() for b in include_list):
+            out.append(path_item)
+    output("Lagt til {} baner fra inkluderingsliste:".format(str(len(out))))
+    output("\n".join(out))
+    output("------------------------------------")
+    return out
 
 def path_is_in_errorfile(path):
     if not os.path.exists(exporter_settings.error_paths_file):
@@ -202,8 +225,12 @@ server_paths, refreshed = run_and_get_serverpaths(crawler_exe_path, crawler_serv
 """ Filterer baner som er definert i settings fil at skal ignoreres """
 server_paths = filter_ignore_paths(server_paths, exporter_settings, Output)
 
+""" Filtrer bort baner som ikke befinner seg i inkluderingsfil """
+server_paths = filter_include_paths(server_paths, exporter_settings, Output)
+
 """ Filtrer bort baner som tidligere ikke har latt seg laste ned """
 server_paths = filter(lambda pa: not path_is_in_errorfile(pa.path), server_paths)
+
 
 """ Lag CSV fil """
 create_csv_file(rvt_csv_file_list_path, server_paths)

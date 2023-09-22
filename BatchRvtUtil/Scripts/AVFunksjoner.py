@@ -155,6 +155,7 @@ class AVAutoExporterSettingsServer(AVAutoExporterSettings):
         self.skip_download = None  # skip download av rvt filer
         # self.rvt_filtered_server_paths_txt = os.path.join(self.home_folder, "rvt_filtered_server_paths.txt")  # fil med prosjektfiler som er endret de siste 24 timer(eller hva det er satt til)
         self.error_paths_file = norm(op(self.home_folder, "error_paths.txt"))  # fil med baner til prosjektfiler som ikke kunne lastes ned
+        self.include_paths_file = norm(op(self.home_folder, "include_paths.txt"))  # fil med baner til prosjektfiler som skal lastes ned
 
         self.force_refresh_csv_server_paths = None
         self.slett_alle_lokalfiler = None
@@ -163,6 +164,7 @@ class AVAutoExporterSettingsServer(AVAutoExporterSettings):
         self.max_csv_age = None
         self.ignore_rvt_files_with_strings = None
         self.versions = None
+        self.use_include_paths = None
 
         """ Private vars er default settings """
         self._force_refresh_csv_server_paths = False
@@ -173,6 +175,8 @@ class AVAutoExporterSettingsServer(AVAutoExporterSettings):
         self._ignore_rvt_files_with_strings = ["_IFC_", "test ", "Oppstartsmodell", "_backup", "_ARKIV", "000000-00", "123456"]
         self._skip_download = False
         self._versions = []
+        self._use_include_paths = False
+
 
         self.load_server_settings()
 
@@ -187,6 +191,7 @@ class AVAutoExporterSettingsServer(AVAutoExporterSettings):
         output("Ignore rvt files with strings (Hopp over filbaner som har en eller flere av disse i navnet): " + str(self.ignore_rvt_files_with_strings))
         output("Skip download (Hopp over nedlasting av rvt filer) er satt til: " + str(self.skip_download))
         output("Henter fra Serverversioner(Tom liste betyr hent alle innstallerte versioner): " + str(self.versions))
+        output("Bare last ned filer som har navn i inkluderingsfil: " + str(self.use_include_paths))
         output()
 
     def load_server_settings(self):
@@ -202,6 +207,7 @@ class AVAutoExporterSettingsServer(AVAutoExporterSettings):
             self.ignore_rvt_files_with_strings = settings.setdefault("ignore_rvt_files_with_strings", self._ignore_rvt_files_with_strings)
             self.skip_download = settings.setdefault("skip_download", self._skip_download)
             self.versions = settings.setdefault("versions", self._versions)
+            self.use_include_paths = settings.setdefault("use_include_paths", self._use_include_paths)
 
 
         with codecs.open(self.av_autoexporter_settings_path, "w", encoding="utf-8") as f:

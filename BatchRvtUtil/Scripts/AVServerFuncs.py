@@ -96,7 +96,6 @@ class ServerPath(object):
                 return True
         return False
 
-
     def get_ifc_out_folder(self, local_ifc_folder):
         server_node_path = self.server_node_path
         local_path = os.path.join(local_ifc_folder, server_node_path)
