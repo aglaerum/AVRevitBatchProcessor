@@ -226,7 +226,7 @@ server_paths, refreshed = run_and_get_serverpaths(crawler_exe_path, crawler_serv
 server_paths = filter_ignore_paths(server_paths, exporter_settings, Output)
 
 """ Filtrer bort baner som ikke befinner seg i inkluderingsfil """
-server_paths = filter_include_paths(server_paths, exporter_settings, Output)
+# server_paths = filter_include_paths(server_paths, exporter_settings, Output)
 
 """ Filtrer bort baner som tidligere ikke har latt seg laste ned """
 server_paths = filter(lambda pa: not path_is_in_errorfile(pa.path), server_paths)
